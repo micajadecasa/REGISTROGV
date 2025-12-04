@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="./public/clock.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Registro de Horas de Vigilancia" />
+  <title>Registro de Horas Gasteiz</title>
+  <link rel="stylesheet" href="./src/style.css" />
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#3b82f6">
+  <link rel="apple-touch-icon" href="./icon.png">
+</head>
+
+<body>
+  <header class="header">
+    <div class="header-content">
+      <div class="logo-section">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <h1>Registro de Horas Gasteiz de Vigilancia</h1>
+        <img src="./public/clock.svg" alt="Logo Gasteiz" class="logo-img" />
+      </div>
+      <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar tema">
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Month Selector -->
+    <div class="month-selector">
+      <button id="prev-month" class="month-nav-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <h2 id="current-month" class="current-month">Diciembre 2024</h2>
+      <button id="next-month" class="month-nav-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Add Shift Button -->
+    <button id="add-shift-btn" class="add-shift-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Añadir Turno
+    </button>
+
+    <!-- Shifts Table -->
+    <div class="table-container">
+      <table class="shifts-table" id="shifts-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Entrada</th>
+            <th>Salida</th>
+            <th>Total</th>
+            <th class="hour-type-col">Nocturnas</th>
+            <th class="hour-type-col">Festivas</th>
+            <th class="hour-type-col">Extras</th>
+            <th class="notes-column">Servicio</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="shifts-tbody">
+          <!-- Shifts will be rendered here -->
+        </tbody>
+      </table>
+      <div id="empty-state" class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        <p>No hay turnos registrados este mes</p>
+        <p class="empty-state-hint">Haz clic en "Añadir Turno" para comenzar</p>
+      </div>
+    </div>
+
+    <!-- Export PDF Button (Centered above summary) -->
+    <div class="export-section">
+      <button id="generate-pdf-btn" class="export-pdf-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+        <span>Descargar PDF del Mes</span>
+      </button>
+    </div>
+
+    <!-- Monthly Totals -->
+    <div class="monthly-totals-container">
+      <h3 class="totals-title">📊 Resumen del Mes</h3>
+      <div class="totals-grid">
+        <div class="total-card total-card-total">
+          <div class="total-card-label">Total Horas</div>
+          <div class="total-card-value" id="total-hours">0.00h</div>
+        </div>
+        <div class="total-card total-card-night">
+          <div class="total-card-label">Horas Nocturnas</div>
+          <div class="total-card-value" id="total-night">0.00h</div>
+        </div>
+        <div class="total-card total-card-holiday">
+          <div class="total-card-label">Horas Festivas</div>
+          <div class="total-card-value" id="total-holiday">0.00h</div>
+        </div>
+        <div class="total-card total-card-overtime">
+          <div class="total-card-label">Horas Extras</div>
+          <div class="total-card-value" id="total-overtime">0.00h</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal for Add/Edit Shift -->
+  <div id="shift-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">Añadir Turno</h3>
+        <button id="close-modal" class="close-btn" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <form id="shift-form" class="shift-form">
+        <div class="form-group">
+          <label for="shift-date">Fecha</label>
+          <input type="date" id="shift-date" name="date" required />
+        </div>
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="shift-holiday" name="isHoliday" />
+            <span class="checkbox-text">¿Es festivo?</span>
+            <span class="holiday-icon">🎉</span>
+          </label>
+          <p class="checkbox-hint">Los festivos nacionales se detectan automáticamente</p>
+        </div>
+        <div class="form-group">
+          <label for="shift-start">Hora de Entrada</label>
+          <input type="time" id="shift-start" name="startTime" required />
+        </div>
+        <div class="form-group">
+          <label for="shift-end">Hora de Salida</label>
+          <input type="time" id="shift-end" name="endTime" required />
+        </div>
+        <div class="form-group">
+          <label for="shift-notes">Servicio</label>
+          <textarea id="shift-notes" name="notes" rows="3" placeholder="Ej: Renfe, Hospital, etc."></textarea>
+        </div>
+        <div id="validation-messages" class="validation-messages"></div>
+        <div class="form-actions">
+          <button type="button" id="cancel-btn" class="secondary-btn">Cancelar</button>
+          <button type="submit" class="primary-btn">Guardar Turno</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal for PDF Settings -->
+  <div id="pdf-settings-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Configuración del PDF</h3>
+        <button id="close-pdf-modal" class="close-btn" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <form id="pdf-settings-form" class="shift-form">
+        <div class="form-group">
+          <label for="worker-name">Nombre del Trabajador</label>
+          <input type="text" id="worker-name" name="workerName" placeholder="Ej: José Ángel Gabriel" required />
+        </div>
+        <div class="form-group">
+          <label for="worker-tip">TIP (Tarjeta Identidad Profesional)</label>
+          <input type="text" id="worker-tip" name="workerTip" placeholder="Ej: 12345" />
+        </div>
+        <div class="form-group">
+          <label for="company-name">Nombre de la Empresa/Servicio (opcional)</label>
+          <input type="text" id="company-name" name="companyName" placeholder="Ej: AUSA" />
+        </div>
+        <div class="form-actions">
+          <button type="button" id="cancel-pdf-btn" class="secondary-btn">Cancelar</button>
+          <button type="submit" class="primary-btn">Generar PDF</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- Main Script -->
+  <script src="./src/main.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('SW registered'))
+          .catch(err => console.log('SW failed', err));
+      });
+    }
+  </script>
+</body>
+
+</html>
