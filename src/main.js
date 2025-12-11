@@ -100,6 +100,13 @@ function setupEventListeners() {
     // Export Form submission
     document.getElementById('pdf-settings-form').addEventListener('submit', handleExportSubmission);
 
+    // History button
+    document.getElementById('history-btn').addEventListener('click', openHistoryModal);
+    document.getElementById('close-history-modal').addEventListener('click', closeHistoryModal);
+    document.getElementById('history-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'history-modal') closeHistoryModal();
+    });
+
     // Holiday checkbox auto-detect
     const dateInput = document.getElementById('shift-date');
     const holidayCheckbox = document.getElementById('shift-holiday');
@@ -308,7 +315,6 @@ function openExportModal(type) {
     const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
     if (profile.name) document.getElementById('worker-name').value = profile.name;
     if (profile.tip) document.getElementById('worker-tip').value = profile.tip;
-    if (profile.company) document.getElementById('company-name').value = profile.company;
 
     const btnText = type === 'pdf' ? 'Generar PDF' : 'Exportar Excel';
     document.querySelector('#pdf-settings-form button[type="submit"]').textContent = btnText;
@@ -376,17 +382,15 @@ function handleExportSubmission(e) {
     const formData = new FormData(e.target);
     const workerName = formData.get('workerName');
     const workerTip = formData.get('workerTip');
-    const companyName = formData.get('companyName');
 
     // Save profile
     localStorage.setItem('userProfile', JSON.stringify({
         name: workerName,
-        tip: workerTip,
-        company: companyName
+        tip: workerTip
     }));
 
     if (currentExportType === 'pdf') {
-        generatePDF(workerName, workerTip, companyName);
+        generatePDF(workerName, workerTip);
     }
 
     closePdfModal();
@@ -400,105 +404,103 @@ function getMonthShifts() {
     }).sort((a, b) => new Date(a.date) - new Date(b.date));
 }
 
-function generatePDF(workerName, workerTip, companyName) {
+async function generatePDF(workerName, workerTip) {
     const { jsPDF } = window.jspdf;
-    // Portrait mode (vertical)
-    const doc = new jsPDF('p', 'mm', 'a4');
+    const doc = new jsPDF();
 
-    const monthNames = [
-        'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
-        'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
-    ];
-
-    const monthName = monthNames[currentMonth];
-    const monthShifts = getMonthShifts();
+    // Fonts
+    doc.setFont("helvetica");
 
     // Header
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('REGISTRO DIARIO DE JORNADA', 105, 15, { align: 'center' });
+    doc.setFontSize(18);
+    doc.text("Registro de Horas Gasteiz de Vigilancia", 105, 20, { align: "center" });
 
-    doc.setFontSize(9);
-    doc.text(`TRABAJADOR: ${workerName.toUpperCase()}`, 15, 25);
-    doc.text(`TIP: ${workerTip}`, 120, 25);
-    doc.text(`MES: ${monthName} ${currentYear}`, 160, 25);
-    if (companyName) doc.text(`EMPRESA: ${companyName.toUpperCase()}`, 15, 30);
+    doc.setFontSize(12);
+    doc.text(`Trabajador: ${workerName}`, 14, 35);
+    if (workerTip) doc.text(`TIP: ${workerTip}`, 14, 42);
+
+    const monthNames = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    doc.text(`Mes: ${monthNames[currentMonth]} ${currentYear}`, 14, 55);
+
+    const monthShifts = getMonthShifts();
 
     // Table Data
-    const tableData = [];
-    const daysOfWeek = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-
-    let totalHours = 0;
-    let totalNight = 0;
-    let totalHoliday = 0;
-
-    monthShifts.forEach(shift => {
-        const date = new Date(shift.date);
-        const dayOfWeek = daysOfWeek[date.getDay()];
-        const day = date.getDate();
-
-        totalHours += shift.hours.total;
-        totalNight += shift.hours.night;
-        totalHoliday += shift.hours.holiday;
-
-        tableData.push([
-            dayOfWeek,
-            day,
+    const tableData = monthShifts.map(shift => {
+        const date = new Date(shift.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+        return [
+            date + (shift.isHoliday ? ' (F)' : ''),
             shift.startTime,
             shift.endTime,
-            shift.hours.total.toFixed(2),
-            shift.hours.night > 0 ? shift.hours.night.toFixed(2) : '',
-            shift.hours.holiday > 0 ? shift.hours.holiday.toFixed(2) : '',
-            '', // Extras (calculated monthly)
-            shift.notes || ''
-        ]);
+            shift.hours.total.toFixed(2) + 'h',
+            shift.hours.night.toFixed(2) + 'h',
+            shift.hours.holiday.toFixed(2) + 'h',
+            shift.notes || '-'
+        ];
     });
 
-    // Calculate Monthly Overtime
-    const overtime = Math.max(0, totalHours - MONTHLY_HOURS_THRESHOLD);
+    // Totals for Summary
+    const totals = monthShifts.reduce((acc, shift) => ({
+        total: acc.total + shift.hours.total,
+        night: acc.night + shift.hours.night,
+        holiday: acc.holiday + shift.hours.holiday
+    }), { total: 0, night: 0, holiday: 0 });
 
+    const overtime = Math.max(0, totals.total - MONTHLY_HOURS_THRESHOLD);
+
+    // Service Breakdown
+    const serviceTotals = {};
+    monthShifts.forEach(shift => {
+        const service = shift.notes || 'Sin Servicio';
+        if (!serviceTotals[service]) serviceTotals[service] = 0;
+        serviceTotals[service] += shift.hours.total;
+    });
+
+    // AutoTable
     doc.autoTable({
-        startY: 35,
-        head: [['Día', 'Nº', 'Entr', 'Sal', 'Total', 'Noct', 'Fest', 'Ext', 'Servicio']],
+        startY: 65,
+        head: [['Fecha', 'Entrada', 'Salida', 'Total', 'Nocturnas', 'Festivas', 'Servicio']],
         body: tableData,
         theme: 'grid',
-        styles: {
-            fontSize: 8,
-            cellPadding: 1,
-            overflow: 'linebreak'
-        },
-        headStyles: {
-            fillColor: [220, 220, 220],
-            textColor: [0, 0, 0],
-            fontStyle: 'bold',
-            halign: 'center'
-        },
-        columnStyles: {
-            0: { cellWidth: 10 }, // Día
-            1: { cellWidth: 8, halign: 'center' }, // Nº
-            2: { cellWidth: 14, halign: 'center' }, // Entr
-            3: { cellWidth: 14, halign: 'center' }, // Sal
-            4: { cellWidth: 14, halign: 'center' }, // Total
-            5: { cellWidth: 14, halign: 'center' }, // Noct
-            6: { cellWidth: 14, halign: 'center' }, // Fest
-            7: { cellWidth: 14, halign: 'center' }, // Ext
-            8: { cellWidth: 'auto' } // Servicio takes remaining space
-        }
+        headStyles: { fillColor: [220, 38, 38] }, // Red
+        styles: { fontSize: 10, cellPadding: 3 },
+        margin: { right: 60 } // Leave space for sidebar
     });
 
-    // Totals
-    const finalY = doc.lastAutoTable.finalY + 10;
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.text('RESUMEN MENSUAL:', 15, finalY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Total Jornada: ${totalHours.toFixed(2)}h`, 15, finalY + 5);
-    doc.text(`Total Nocturnidad: ${totalNight.toFixed(2)}h`, 60, finalY + 5);
-    doc.text(`Total Festivos: ${totalHoliday.toFixed(2)}h`, 110, finalY + 5);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Total Extras (>162h): ${overtime.toFixed(2)}h`, 15, finalY + 10);
+    // Sidebar Summary
+    const finalY = doc.lastAutoTable.finalY || 65;
+    const summaryX = 150;
+    const summaryY = 65;
 
-    doc.save(`Registro_${monthName}_${currentYear}_${workerName}.pdf`);
+    doc.setFillColor(245, 245, 245);
+    doc.rect(summaryX, summaryY, 50, 60, 'F');
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("Resumen", summaryX + 5, summaryY + 10);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Total: ${totals.total.toFixed(2)}h`, summaryX + 5, summaryY + 20);
+    doc.text(`Nocturnas: ${totals.night.toFixed(2)}h`, summaryX + 5, summaryY + 30);
+    doc.text(`Festivas: ${totals.holiday.toFixed(2)}h`, summaryX + 5, summaryY + 40);
+    doc.text(`Extras: ${overtime.toFixed(2)}h`, summaryX + 5, summaryY + 50);
+
+    // Service Breakdown in Sidebar
+    let serviceY = summaryY + 70;
+    doc.setFont("helvetica", "bold");
+    doc.text("Por Servicio", summaryX + 5, serviceY);
+    serviceY += 10;
+
+    doc.setFont("helvetica", "normal");
+    for (const [service, hours] of Object.entries(serviceTotals)) {
+        doc.text(`${service}: ${hours.toFixed(2)}h`, summaryX + 5, serviceY);
+        serviceY += 7;
+    }
+
+    doc.save(`Registro_Horas_${monthNames[currentMonth]}_${currentYear}.pdf`);
 }
 
 // ============= RENDERING =============
@@ -591,3 +593,101 @@ window.deleteShift = (id) => {
         renderShifts();
     }
 };
+
+// ============= HISTORY MODAL =============
+function openHistoryModal() {
+    renderHistoryList();
+    document.getElementById('history-modal').classList.add('show');
+}
+
+function closeHistoryModal() {
+    document.getElementById('history-modal').classList.remove('show');
+}
+
+function renderHistoryList() {
+    const historyList = document.getElementById('history-list');
+
+    // Get all unique months that have shifts
+    const monthsWithShifts = getMonthsWithShifts();
+
+    if (monthsWithShifts.length === 0) {
+        historyList.innerHTML = `
+            <div class="history-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <p>No hay registros históricos</p>
+            </div>
+        `;
+        return;
+    }
+
+    const monthNames = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+
+    historyList.innerHTML = monthsWithShifts.map(({ month, year, count, totalHours }) => {
+        const isCurrentMonth = month === currentMonth && year === currentYear;
+        const monthLabel = `${monthNames[month]} ${year}`;
+
+        return `
+            <div class="history-item ${isCurrentMonth ? 'current' : ''}" 
+                 onclick="navigateToMonth(${month}, ${year})">
+                <div class="history-item-info">
+                    <div class="history-item-month">
+                        ${monthLabel} ${isCurrentMonth ? '(Actual)' : ''}
+                    </div>
+                    <div class="history-item-stats">
+                        ${count} turno${count !== 1 ? 's' : ''} • ${totalHours.toFixed(2)}h totales
+                    </div>
+                </div>
+                <div class="history-item-badge">${count}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function getMonthsWithShifts() {
+    const monthMap = new Map();
+
+    shifts.forEach(shift => {
+        const date = new Date(shift.date);
+        const month = date.getMonth();
+        const year = date.getFullYear();
+        const key = `${year}-${month}`;
+
+        if (!monthMap.has(key)) {
+            monthMap.set(key, {
+                month,
+                year,
+                count: 0,
+                totalHours: 0
+            });
+        }
+
+        const data = monthMap.get(key);
+        data.count++;
+        data.totalHours += shift.hours.total;
+    });
+
+    // Convert to array and sort by date (most recent first)
+    return Array.from(monthMap.values())
+        .sort((a, b) => {
+            if (a.year !== b.year) return b.year - a.year;
+            return b.month - a.month;
+        });
+}
+
+function navigateToMonth(month, year) {
+    currentMonth = month;
+    currentYear = year;
+    updateMonthDisplay();
+    renderShifts();
+    closeHistoryModal();
+}
+
+window.navigateToMonth = navigateToMonth;
