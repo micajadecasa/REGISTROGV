@@ -1,5 +1,6 @@
 /* ============================================
    MODERN DESIGN - Red, Black, White, Green
+   MOBILE-FIRST RESPONSIVE
    ============================================ */
 
 :root {
@@ -103,7 +104,7 @@ body {
 .header {
   background: var(--surface);
   border-bottom: 2px solid var(--primary);
-  padding: var(--spacing-lg) var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-sm);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -116,7 +117,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
 }
 
 .logo-section {
@@ -128,20 +129,20 @@ body {
 }
 
 .logo-icon {
-  width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 20px;
   color: var(--primary);
   flex-shrink: 0;
 }
 
 .logo-img {
-  width: 32px;
+  width: 24px;
   height: auto;
   flex-shrink: 0;
 }
 
 .header h1 {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-base);
   font-weight: 700;
   color: var(--primary);
   overflow: hidden;
@@ -151,8 +152,8 @@ body {
 
 /* Theme Toggle Button */
 .theme-toggle {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-full);
   border: 2px solid var(--border);
   background: var(--surface);
@@ -176,8 +177,8 @@ body {
 }
 
 .theme-toggle svg {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   position: absolute;
   transition: all var(--transition-base);
 }
@@ -211,7 +212,7 @@ body {
 .main-content {
   max-width: 1400px;
   margin: 0 auto;
-  padding: var(--spacing-2xl) var(--spacing-md);
+  padding: var(--spacing-lg) var(--spacing-sm);
 }
 
 /* Month Selector */
@@ -219,18 +220,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-2xl);
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xl);
   background: var(--surface);
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
   border: 1px solid var(--border);
 }
 
 .month-nav-btn {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-full);
   border: 2px solid var(--primary);
   background: transparent;
@@ -258,17 +260,20 @@ body {
 }
 
 .current-month {
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-lg);
   font-weight: 700;
   color: var(--text-primary);
-  min-width: 200px;
+  min-width: 120px;
   text-align: center;
+  flex: 1 1 100%;
+  order: -1;
 }
 
 /* History Button */
 .history-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-sm) var(--spacing-lg);
   border-radius: var(--radius-full);
@@ -279,7 +284,7 @@ body {
   transition: all var(--transition-base);
   font-size: var(--font-size-sm);
   font-weight: 600;
-  margin-left: var(--spacing-md);
+  flex: 1 1 100%;
 }
 
 .history-btn:hover {
@@ -303,10 +308,10 @@ body {
   justify-content: center;
   gap: var(--spacing-sm);
   width: 100%;
-  max-width: 300px;
+  max-width: 100%;
   margin: 0 auto var(--spacing-xl);
-  padding: var(--spacing-lg) var(--spacing-xl);
-  font-size: var(--font-size-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--color-white);
   background: var(--success);
@@ -338,17 +343,21 @@ body {
 
 .table-container {
   background: var(--surface);
-  border-radius: var(--radius-xl);
+  border-radius: 0;
   box-shadow: var(--shadow-lg);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   margin-bottom: var(--spacing-xl);
   min-height: 300px;
   border: 1px solid var(--border);
+  margin-left: calc(var(--spacing-sm) * -1);
+  margin-right: calc(var(--spacing-sm) * -1);
 }
 
 .shifts-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 700px;
 }
 
 .shifts-table thead {
@@ -356,7 +365,7 @@ body {
 }
 
 .shifts-table th {
-  padding: var(--spacing-lg);
+  padding: var(--spacing-sm);
   text-align: left;
   font-weight: 600;
   color: var(--color-white);
@@ -371,22 +380,14 @@ body {
   transition: all var(--transition-fast);
 }
 
-.shifts-table tbody tr:hover {
-  background: var(--color-grey-100);
-}
-
-[data-theme="dark"] .shifts-table tbody tr:hover {
-  background: #334155;
-}
-
 .shifts-table tbody tr:last-child {
   border-bottom: none;
 }
 
 .shifts-table td {
-  padding: var(--spacing-lg);
+  padding: var(--spacing-sm);
   color: var(--text-primary);
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
 }
 
 .shifts-table .hours-cell {
@@ -421,17 +422,17 @@ body {
 /* Action Buttons */
 .shifts-table .actions-cell {
   display: flex;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-xs);
 }
 
 .action-btn {
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-sm);
   border: 2px solid;
   background: transparent;
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all var(--transition-fast);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -472,8 +473,8 @@ body {
 }
 
 .empty-state svg {
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   margin-bottom: var(--spacing-lg);
   opacity: 0.3;
   color: var(--text-muted);
@@ -497,14 +498,14 @@ body {
 .monthly-totals-container {
   background: var(--surface);
   border-radius: var(--radius-xl);
-  padding: var(--spacing-xl);
+  padding: var(--spacing-lg);
   box-shadow: var(--shadow-lg);
   margin-bottom: var(--spacing-xl);
   border: 1px solid var(--border);
 }
 
 .totals-title {
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-xl);
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: var(--spacing-lg);
@@ -513,7 +514,7 @@ body {
 
 .totals-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--spacing-md);
 }
 
@@ -577,7 +578,7 @@ body {
 }
 
 .total-card-value {
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-2xl);
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -589,23 +590,25 @@ body {
 .export-section {
   display: flex;
   justify-content: center;
-  margin: var(--spacing-2xl) 0 var(--spacing-xl) 0;
+  margin: var(--spacing-xl) 0;
 }
 
 .export-pdf-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-sm);
-  padding: var(--spacing-md) var(--spacing-2xl);
+  padding: var(--spacing-md) var(--spacing-xl);
   background: var(--primary);
   color: var(--color-white);
   border: none;
   border-radius: var(--radius-full);
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-base);
   box-shadow: var(--shadow-md);
+  width: 100%;
 }
 
 .export-pdf-btn:hover {
@@ -640,6 +643,7 @@ body {
   align-items: center;
   justify-content: center;
   animation: fadeIn var(--transition-base);
+  overflow-y: auto;
 }
 
 .modal.show {
@@ -659,12 +663,15 @@ body {
 .modal-content {
   background: var(--surface);
   border-radius: var(--radius-xl);
-  padding: var(--spacing-2xl);
-  max-width: 500px;
-  width: 90%;
+  padding: var(--spacing-lg);
+  max-width: 95%;
+  width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: var(--shadow-xl);
   animation: slideUp var(--transition-base);
   border: 1px solid var(--border);
+  margin: var(--spacing-md);
 }
 
 @keyframes slideUp {
@@ -683,18 +690,18 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: var(--spacing-lg);
 }
 
 .modal-header h3 {
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-lg);
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .close-btn {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-full);
   border: none;
   background: transparent;
@@ -704,6 +711,7 @@ body {
   justify-content: center;
   transition: all var(--transition-fast);
   color: var(--text-secondary);
+  flex-shrink: 0;
 }
 
 .close-btn:hover {
@@ -728,7 +736,7 @@ body {
 .shift-form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
 }
 
 .form-group {
@@ -753,7 +761,8 @@ body {
   background: var(--surface);
   color: var(--text-primary);
   font-family: var(--font-family);
-  font-size: var(--font-size-base);
+  font-size: 16px;
+  /* Prevents zoom on iOS */
   transition: all var(--transition-fast);
 }
 
@@ -792,8 +801,8 @@ body {
 }
 
 .checkbox-label input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
   accent-color: var(--primary);
 }
@@ -860,13 +869,14 @@ body {
 /* Form Actions */
 .form-actions {
   display: flex;
+  flex-direction: column;
   gap: var(--spacing-md);
   margin-top: var(--spacing-md);
 }
 
 .primary-btn,
 .secondary-btn {
-  flex: 1;
+  width: 100%;
   padding: var(--spacing-md) var(--spacing-lg);
   border-radius: var(--radius-lg);
   font-size: var(--font-size-base);
@@ -905,11 +915,11 @@ body {
    ============================================ */
 
 .history-modal-content {
-  max-width: 600px;
+  max-width: 95%;
 }
 
 .history-content {
-  max-height: 500px;
+  max-height: 60vh;
   overflow-y: auto;
 }
 
@@ -930,7 +940,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md);
   background: var(--color-grey-100);
   border: 2px solid var(--border);
   border-radius: var(--radius-lg);
@@ -964,13 +974,13 @@ body {
 }
 
 .history-item-month {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .history-item-stats {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
 }
 
@@ -997,35 +1007,225 @@ body {
 }
 
 /* ============================================
-   RESPONSIVE
+   RESPONSIVE - TABLET & DESKTOP
    ============================================ */
 
-@media (max-width: 768px) {
-  .header h1 {
-    font-size: var(--font-size-base);
+/* Tablet */
+@media (min-width: 641px) {
+  .header {
+    padding: var(--spacing-lg) var(--spacing-md);
   }
 
-  .logo-icon,
-  .logo-img {
+  .header h1 {
+    font-size: var(--font-size-lg);
+  }
+
+  .logo-icon {
     width: 24px;
+    height: 24px;
+  }
+
+  .logo-img {
+    width: 32px;
   }
 
   .theme-toggle {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .theme-toggle svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .main-content {
+    padding: var(--spacing-2xl) var(--spacing-md);
+  }
+
+  .month-selector {
+    flex-wrap: nowrap;
+    padding: var(--spacing-lg);
+  }
+
+  .month-nav-btn {
+    width: 48px;
+    height: 48px;
   }
 
   .current-month {
-    font-size: var(--font-size-lg);
-    min-width: 150px;
+    font-size: var(--font-size-xl);
+    flex: 0 1 auto;
+    order: 0;
+    min-width: 200px;
+  }
+
+  .history-btn {
+    flex: 0 1 auto;
+    margin-left: var(--spacing-md);
+  }
+
+  .add-shift-btn {
+    max-width: 300px;
   }
 
   .table-container {
-    overflow-x: auto;
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: var(--radius-xl);
+  }
+
+  .shifts-table th,
+  .shifts-table td {
+    padding: var(--spacing-lg);
+    font-size: var(--font-size-base);
+  }
+
+  .action-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
   }
 
   .totals-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .totals-title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .total-card-value {
+    font-size: var(--font-size-3xl);
+  }
+
+  .export-pdf-btn {
+    width: auto;
+    min-width: 300px;
+  }
+
+  .modal-content {
+    width: 85%;
+    max-width: 600px;
+    padding: var(--spacing-2xl);
+  }
+
+  .modal-header h3 {
+    font-size: var(--font-size-2xl);
+  }
+
+  .form-actions {
+    flex-direction: row;
+  }
+
+  .primary-btn,
+  .secondary-btn {
+    flex: 1;
+    width: auto;
+  }
+
+  .history-content {
+    max-height: 500px;
+  }
+
+  .history-item {
+    padding: var(--spacing-lg);
+  }
+
+  .history-item-month {
+    font-size: var(--font-size-lg);
+  }
+
+  .history-item-stats {
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* Desktop */
+@media (min-width: 1025px) {
+  .header h1 {
+    font-size: var(--font-size-xl);
+  }
+
+  .current-month {
+    font-size: var(--font-size-2xl);
+  }
+
+  .totals-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .modal-content {
+    max-width: 500px;
+  }
+
+  .history-modal-content {
+    max-width: 600px;
+  }
+
+  /* Hover effects only on desktop */
+  .shifts-table tbody tr:hover {
+    background: var(--color-grey-100);
+  }
+
+  [data-theme="dark"] .shifts-table tbody tr:hover {
+    background: #334155;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+
+  /* Larger touch targets */
+  .month-nav-btn,
+  .theme-toggle,
+  .close-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Remove hover effects */
+  .shifts-table tbody tr:hover {
+    background: transparent;
+  }
+
+  /* Better tap highlights */
+  * {
+    -webkit-tap-highlight-color: rgba(220, 38, 38, 0.1);
+  }
+}
+
+/* Landscape mobile */
+@media (max-width: 900px) and (orientation: landscape) {
+  .modal-content {
+    max-height: 85vh;
+  }
+
+  .history-content {
+    max-height: 50vh;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Auto dark mode */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: #0F172A;
+    --surface: #1E293B;
+    --text-primary: #F1F5F9;
+    --text-secondary: #CBD5E1;
+    --text-muted: #64748B;
+    --border: #334155;
   }
 }
 
@@ -1043,7 +1243,8 @@ body {
   .add-shift-btn,
   .action-btn,
   .month-nav-btn,
-  .export-section {
+  .export-section,
+  .history-btn {
     display: none;
   }
 
@@ -1051,10 +1252,15 @@ body {
   .monthly-totals-container {
     box-shadow: none;
     border: 1px solid #000;
+    page-break-inside: avoid;
   }
 
   .shifts-table th {
     background: #f0f0f0 !important;
     color: #000 !important;
+  }
+
+  .main-content {
+    padding: 0;
   }
 }

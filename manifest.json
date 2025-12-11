@@ -1,15 +1,23 @@
 {
-    "name": "Control de Turnos",
-    "short_name": "Turnos",
+    "name": "Registro de Horas Gasteiz",
+    "short_name": "Horas Gasteiz",
+    "description": "Aplicación para registro de horas de vigilancia - Optimizada para móviles",
     "start_url": "./index.html",
     "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#3b82f6",
+    "orientation": "portrait-primary",
+    "background_color": "#F8FAFC",
+    "theme_color": "#DC2626",
     "icons": [
         {
             "src": "icon.png",
             "sizes": "1024x1024",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any maskable"
         }
-    ]
+    ],
+    "categories": [
+        "productivity",
+        "business"
+    ],
+    "prefer_related_applications": false
 }
