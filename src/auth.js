@@ -72,7 +72,7 @@ function loginWithGoogle() {
 
     // Inicializar Google Identity Services
     google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
+        client_id: '1076553063267-h3pfdmhtpl4rp16ftdsbbiaq76odsqka.apps.googleusercontent.com',
         callback: handleGoogleCallback,
         auto_select: false
     });
@@ -411,3 +411,4 @@ window.authModule = {
     saveToOneDrive,
     showNotification
 };
+
