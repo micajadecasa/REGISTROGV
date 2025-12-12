@@ -1,13 +1,14 @@
 // ============= AUTHENTICATION & CLOUD STORAGE =============
 
 // OAuth Configuration
-const GOOGLE_CLIENT_ID = 'TU_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '1076553063267-h3pfdmhtpl4rp16ftdsbbiaq76odsqka.apps.googleusercontent.com';
 const MICROSOFT_CLIENT_ID = 'TU_MICROSOFT_CLIENT_ID';
 
 // Cloud Storage State
 let currentUser = null;
 let authProvider = null; // 'google' or 'microsoft'
 let accessToken = null;
+let googleTokenClient = null;
 
 // ============= INITIALIZATION =============
 document.addEventListener('DOMContentLoaded', () => {
@@ -70,57 +71,63 @@ function loginWithGoogle() {
         return;
     }
 
-    // Inicializar Google Identity Services
-    google.accounts.id.initialize({
-        client_id: '1076553063267-h3pfdmhtpl4rp16ftdsbbiaq76odsqka.apps.googleusercontent.com',
-        callback: handleGoogleCallback,
-        auto_select: false
-    });
-
-    // Mostrar el prompt de login
-    google.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            // Fallback: usar el botón de login
-            google.accounts.id.renderButton(
-                document.getElementById('google-login-btn'),
-                { theme: 'outline', size: 'large', text: 'continue_with' }
-            );
-        }
-    });
-
-    // Solicitar token de acceso para Google Drive
-    const client = google.accounts.oauth2.initTokenClient({
+    // Usar solo OAuth2 Token Client para obtener tanto info del usuario como acceso a Drive
+    googleTokenClient = google.accounts.oauth2.initTokenClient({
         client_id: GOOGLE_CLIENT_ID,
-        scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile',
-        callback: (tokenResponse) => {
+        scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+        callback: async (tokenResponse) => {
+            if (tokenResponse.error) {
+                console.error('Error en autenticación:', tokenResponse);
+                alert('Error al iniciar sesión con Google');
+                return;
+            }
+
+            // Guardar el access token
             accessToken = tokenResponse.access_token;
-            console.log('Token de acceso obtenido para Google Drive');
+            console.log('✅ Token de acceso obtenido:', accessToken ? 'SÍ' : 'NO');
+
+            // Obtener información del usuario con el token
+            try {
+                const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+
+                if (userInfoResponse.ok) {
+                    const userInfo = await userInfoResponse.json();
+
+                    currentUser = {
+                        name: userInfo.name,
+                        email: userInfo.email,
+                        picture: userInfo.picture,
+                        isGuest: false
+                    };
+
+                    authProvider = 'google';
+
+                    saveSession();
+                    closeLoginModal();
+                    hideLandingPage();
+                    showMainApp();
+                    updateUserUI();
+
+                    console.log('✅ Login exitoso con Google:', currentUser);
+                    showNotification('✅ Sesión iniciada con Google', 'success');
+                } else {
+                    const errorText = await userInfoResponse.text();
+                    console.error('Error obteniendo info del usuario:', errorText);
+                    throw new Error('No se pudo obtener información del usuario');
+                }
+            } catch (error) {
+                console.error('Error obteniendo información del usuario:', error);
+                alert('Error al obtener información del usuario. Verifica la consola para más detalles.');
+            }
         },
     });
 
-    client.requestAccessToken();
-}
-
-function handleGoogleCallback(response) {
-    // Decodificar el JWT token
-    const payload = parseJwt(response.credential);
-
-    currentUser = {
-        name: payload.name,
-        email: payload.email,
-        picture: payload.picture,
-        isGuest: false
-    };
-
-    authProvider = 'google';
-
-    saveSession();
-    closeLoginModal();
-    hideLandingPage();
-    showMainApp();
-    updateUserUI();
-
-    console.log('Login exitoso con Google:', currentUser);
+    // Solicitar el token (esto abrirá el popup de Google)
+    googleTokenClient.requestAccessToken({ prompt: 'consent' });
 }
 
 // ============= MICROSOFT OAUTH =============
@@ -173,7 +180,8 @@ async function loginWithMicrosoft() {
         showMainApp();
         updateUserUI();
 
-        console.log('Login exitoso con Microsoft:', currentUser);
+        console.log('✅ Login exitoso con Microsoft:', currentUser);
+        showNotification('✅ Sesión iniciada con Microsoft', 'success');
     } catch (error) {
         console.error('Error en login de Microsoft:', error);
         alert('Error al iniciar sesión con Microsoft. Por favor, intenta de nuevo.');
@@ -200,8 +208,12 @@ async function getMicrosoftProfilePhoto(token) {
 
 // ============= CLOUD STORAGE =============
 async function saveToGoogleDrive(pdfBlob, filename) {
+    console.log('🔵 Intentando guardar en Google Drive...');
+    console.log('Token disponible:', accessToken ? 'SÍ' : 'NO');
+
     if (!accessToken) {
-        console.error('No hay token de acceso para Google Drive');
+        console.error('❌ No hay token de acceso para Google Drive');
+        showNotification('❌ No hay token de acceso. Vuelve a iniciar sesión.', 'error');
         return false;
     }
 
@@ -215,6 +227,7 @@ async function saveToGoogleDrive(pdfBlob, filename) {
     form.append('file', pdfBlob);
 
     try {
+        console.log('📤 Subiendo archivo a Google Drive...');
         const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
             method: 'POST',
             headers: {
@@ -223,28 +236,36 @@ async function saveToGoogleDrive(pdfBlob, filename) {
             body: form
         });
 
+        console.log('📥 Respuesta de Google Drive:', response.status);
+
         if (response.ok) {
             const result = await response.json();
-            console.log('PDF guardado en Google Drive:', result);
-            showNotification('✅ PDF guardado en Google Drive', 'success');
+            console.log('✅ PDF guardado en Google Drive:', result);
+            showNotification(`✅ PDF guardado en Google Drive (ID: ${result.id})`, 'success');
             return true;
         } else {
-            throw new Error('Error al subir a Google Drive');
+            const errorText = await response.text();
+            console.error('❌ Error de Google Drive:', errorText);
+            throw new Error(`Error ${response.status}: ${errorText}`);
         }
     } catch (error) {
-        console.error('Error guardando en Google Drive:', error);
-        showNotification('❌ Error al guardar en Google Drive', 'error');
+        console.error('❌ Error guardando en Google Drive:', error);
+        showNotification(`❌ Error: ${error.message}`, 'error');
         return false;
     }
 }
 
 async function saveToOneDrive(pdfBlob, filename) {
+    console.log('🔵 Intentando guardar en OneDrive...');
+
     if (!accessToken) {
-        console.error('No hay token de acceso para OneDrive');
+        console.error('❌ No hay token de acceso para OneDrive');
+        showNotification('❌ No hay token de acceso. Vuelve a iniciar sesión.', 'error');
         return false;
     }
 
     try {
+        console.log('📤 Subiendo archivo a OneDrive...');
         const response = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${filename}:/content`, {
             method: 'PUT',
             headers: {
@@ -254,17 +275,21 @@ async function saveToOneDrive(pdfBlob, filename) {
             body: pdfBlob
         });
 
+        console.log('📥 Respuesta de OneDrive:', response.status);
+
         if (response.ok) {
             const result = await response.json();
-            console.log('PDF guardado en OneDrive:', result);
-            showNotification('✅ PDF guardado en OneDrive', 'success');
+            console.log('✅ PDF guardado en OneDrive:', result);
+            showNotification(`✅ PDF guardado en OneDrive`, 'success');
             return true;
         } else {
-            throw new Error('Error al subir a OneDrive');
+            const errorText = await response.text();
+            console.error('❌ Error de OneDrive:', errorText);
+            throw new Error(`Error ${response.status}: ${errorText}`);
         }
     } catch (error) {
-        console.error('Error guardando en OneDrive:', error);
-        showNotification('❌ Error al guardar en OneDrive', 'error');
+        console.error('❌ Error guardando en OneDrive:', error);
+        showNotification(`❌ Error: ${error.message}`, 'error');
         return false;
     }
 }
@@ -274,9 +299,11 @@ function saveSession() {
     const session = {
         user: currentUser,
         provider: authProvider,
+        token: accessToken, // Guardar token para restaurar sesión
         timestamp: Date.now()
     };
     localStorage.setItem('userSession', JSON.stringify(session));
+    console.log('💾 Sesión guardada');
 }
 
 function loadSavedSession() {
@@ -285,17 +312,22 @@ function loadSavedSession() {
         if (saved) {
             const session = JSON.parse(saved);
 
-            // Verificar si la sesión no ha expirado (24 horas)
-            const dayInMs = 24 * 60 * 60 * 1000;
-            if (Date.now() - session.timestamp < dayInMs) {
+            // Verificar si la sesión no ha expirado (1 hora para tokens)
+            const hourInMs = 60 * 60 * 1000;
+            if (Date.now() - session.timestamp < hourInMs) {
                 currentUser = session.user;
                 authProvider = session.provider;
+                accessToken = session.token;
 
                 hideLandingPage();
                 showMainApp();
                 updateUserUI();
 
-                console.log('Sesión restaurada:', currentUser);
+                console.log('✅ Sesión restaurada:', currentUser);
+                console.log('Token restaurado:', accessToken ? 'SÍ' : 'NO');
+            } else {
+                console.log('⏰ Sesión expirada');
+                localStorage.removeItem('userSession');
             }
         }
     } catch (error) {
@@ -313,7 +345,7 @@ function logout() {
         showLandingPage();
         hideMainApp();
 
-        console.log('Sesión cerrada');
+        console.log('👋 Sesión cerrada');
     }
 }
 
@@ -382,6 +414,8 @@ function showNotification(message, type = 'info') {
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         z-index: 10000;
         animation: slideInRight 0.3s ease;
+        max-width: 300px;
+        word-wrap: break-word;
     `;
 
     document.body.appendChild(notification);
@@ -389,7 +423,7 @@ function showNotification(message, type = 'info') {
     setTimeout(() => {
         notification.style.animation = 'slideOutRight 0.3s ease';
         setTimeout(() => notification.remove(), 300);
-    }, 3000);
+    }, 5000); // 5 segundos para leer el mensaje
 }
 
 // ============= UTILITIES =============
@@ -407,8 +441,8 @@ function parseJwt(token) {
 window.authModule = {
     currentUser: () => currentUser,
     authProvider: () => authProvider,
+    accessToken: () => accessToken, // Exportar también el token para debug
     saveToGoogleDrive,
     saveToOneDrive,
     showNotification
 };
-
