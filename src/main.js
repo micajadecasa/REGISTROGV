@@ -500,7 +500,30 @@ async function generatePDF(workerName, workerTip) {
         serviceY += 7;
     }
 
-    doc.save(`Registro_Horas_${monthNames[currentMonth]}_${currentYear}.pdf`);
+    // Generate filename
+    const filename = `Registro_Horas_${monthNames[currentMonth]}_${currentYear}.pdf`;
+
+    // Save locally
+    doc.save(filename);
+
+    // Save to cloud if user is authenticated and option is checked
+    const saveToCloudCheckbox = document.getElementById('save-to-cloud');
+    if (window.authModule && saveToCloudCheckbox && saveToCloudCheckbox.checked) {
+        const currentUser = window.authModule.currentUser();
+        const provider = window.authModule.authProvider();
+
+        if (currentUser && !currentUser.isGuest) {
+            // Convert PDF to blob
+            const pdfBlob = doc.output('blob');
+
+            // Save to appropriate cloud storage
+            if (provider === 'google') {
+                window.authModule.saveToGoogleDrive(pdfBlob, filename);
+            } else if (provider === 'microsoft') {
+                window.authModule.saveToOneDrive(pdfBlob, filename);
+            }
+        }
+    }
 }
 
 // ============= RENDERING =============
