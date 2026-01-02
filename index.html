@@ -20,41 +20,29 @@
   <!-- Landing Page -->
   <div id="landing-page" class="landing-page">
     <div class="landing-container">
-      <div class="landing-header">
-        <svg class="landing-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"></circle>
-          <polyline points="12 6 12 12 16 14"></polyline>
-        </svg>
-        <h1 class="landing-title">Registro de Horas Gasteiz</h1>
-        <p class="landing-subtitle">Gestiona tus turnos de vigilancia de forma profesional</p>
+      <div class="landing-top-actions">
+        <button id="theme-toggle-landing" class="theme-toggle" aria-label="Cambiar tema">
+          <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
       </div>
-
-      <div class="landing-features">
-        <div class="feature-card">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-            <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
-          </svg>
-          <h3>Registro Completo</h3>
-          <p>Horas normales, nocturnas y festivas</p>
-        </div>
-        <div class="feature-card">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-          </svg>
-          <h3>Exportación PDF</h3>
-          <p>Genera informes profesionales</p>
-        </div>
-        <div class="feature-card">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path
-              d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
-            </path>
-          </svg>
-          <h3>Nube Segura</h3>
-          <p>Guarda en Drive o OneDrive</p>
-        </div>
+      <div class="landing-header">
+        <img src="./public/logo1.jpg" alt="Logo" class="landing-logo-img"
+          style="width: 120px; height: auto; margin-bottom: 20px; border-radius: 25%;">
+        <h1 class="landing-title">Registro de Horas</h1>
+        <p class="landing-subtitle">Gestiona tus turnos, app no oficial</p>
       </div>
 
       <div class="landing-actions">
@@ -72,11 +60,40 @@
           </svg>
           Acceso con Cuenta
         </button>
+        <p class="landing-note" style="margin-top: 15px; text-align: center;">
+          💡 Con cuenta puedes guardar automáticamente tus PDFs en la nube
+        </p>
       </div>
 
-      <p class="landing-note">
-        💡 Con cuenta puedes guardar automáticamente tus PDFs en la nube
-      </p>
+      <div class="landing-features">
+        <div class="feature-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+          </svg>
+          <h3>Registro Completo</h3>
+          <p>Horas normales, nocturnas y festivas</p>
+        </div>
+        <div class="feature-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+          <h3>Exportación PDF</h3>
+          <p>Genera tu propio PDF</p>
+        </div>
+        <div class="feature-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+            </path>
+          </svg>
+          <h3>Nube Segura</h3>
+          <p>Guardalo en Drive o OneDrive</p>
+        </div>
+      </div>
+
+
     </div>
   </div>
 
@@ -129,12 +146,8 @@
     <header class="header">
       <div class="header-content">
         <div class="logo-section">
-          <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
-          <h1>Registro de Horas Gasteiz de Vigilancia</h1>
-          <img src="./public/clock.svg" alt="Logo Gasteiz" class="logo-img" />
+          <img src="./public/logo1.jpg" alt="Logo Gasteiz" class="logo-img" />
+          <h1>Registro de Horas Gasteiz</h1>
         </div>
         <div class="header-actions">
           <div id="user-info" class="user-info" style="display: none;">
@@ -233,7 +246,14 @@
         </div>
       </div>
 
-      <!-- Export PDF Button -->
+      <!-- Monthly Observations -->
+      <div class="observations-container">
+        <h3>📝 Observaciones del Mes</h3>
+        <textarea id="monthly-observations"
+          placeholder="Introduce aquí notas u observaciones para este mes..."></textarea>
+      </div>
+
+      <!-- Export Section -->
       <div class="export-section">
         <button id="generate-pdf-btn" class="export-pdf-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -242,7 +262,20 @@
             <line x1="16" y1="13" x2="8" y2="13"></line>
             <line x1="16" y1="17" x2="8" y2="17"></line>
           </svg>
-          <span>Descargar PDF del Mes</span>
+          <span>Descargar Parte del Mes</span>
+        </button>
+        <button id="generate-payroll-btn" class="export-pdf-btn secondary-action" style="display: none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+            <line x1="2" y1="10" x2="22" y2="10"></line>
+            <line x1="12" y1="15" x2="12" y2="15"></line>
+            <path d="M12 5V3"></path>
+            <path d="M7 5V3"></path>
+            <path d="M17 5V3"></path>
+            <path d="M15 15h2"></path>
+            <path d="M7 15h2"></path>
+          </svg>
+          <span>Generar Nómina</span>
         </button>
       </div>
 
@@ -321,7 +354,7 @@
   <div id="pdf-settings-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Configuración del PDF</h3>
+        <h3>Configuración del Parte de Horas</h3>
         <button id="close-pdf-modal" class="close-btn" aria-label="Cerrar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -348,7 +381,183 @@
         </div>
         <div class="form-actions">
           <button type="button" id="cancel-pdf-btn" class="secondary-btn">Cancelar</button>
-          <button type="submit" class="primary-btn">Generar PDF</button>
+          <button type="submit" class="primary-btn">Generar Parte</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal for Payroll Settings -->
+  <div id="payroll-settings-modal" class="modal">
+    <div class="modal-content payroll-modal-content">
+      <div class="modal-header">
+        <h3>Configuración de Nómina</h3>
+        <button id="close-payroll-modal" class="close-btn" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="personal">Datos Personales</button>
+        <button class="tab-btn" data-tab="economic">Datos Económicos</button>
+        <button class="tab-btn" data-tab="incidents">Incidencias</button>
+      </div>
+
+      <form id="payroll-settings-form" class="shift-form">
+
+        <!-- TAB: DATOS PERSONALES -->
+        <div id="tab-personal" class="tab-content active">
+          <div class="form-group">
+            <label for="payroll-worker-name">Nombre Completo</label>
+            <input type="text" id="payroll-worker-name" name="workerName" required />
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="payroll-nif">NIF/DNI</label>
+              <input type="text" id="payroll-nif" name="nif" placeholder="12345678Z" required />
+            </div>
+            <div class="form-group">
+              <label for="payroll-ss">Nº Seguridad Social</label>
+              <input type="text" id="payroll-ss" name="ssNumber" placeholder="01/12345678/90" />
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="payroll-category">Categoría</label>
+              <input type="text" id="payroll-category" name="category" value="Vigilante de Seguridad" />
+            </div>
+            <div class="form-group">
+              <label for="payroll-group">Grupo Cot.</label>
+              <select id="payroll-group" name="cotizationGroup">
+                <option value="4">G.4 - Ayudantes titulados</option>
+                <option value="5">G.5 - Oficiales administrativos</option>
+                <option value="6">G.6 - Subalternos</option>
+                <option value="7" selected>G.7 - Auxiliares administ.</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="payroll-family-situation">Situación Familiar (IRPF)</label>
+            <select id="payroll-family-situation" name="familySituation">
+              <option value="single">Soltero/a sin hijos</option>
+              <option value="married">Casado/a</option>
+              <option value="single_parent">Monoparental</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="payroll-children">Nº Hijos (menores 25 años)</label>
+            <input type="number" id="payroll-children" name="children" value="0" min="0" />
+          </div>
+        </div>
+
+        <!-- TAB: DATOS ECONÓMICOS -->
+        <div id="tab-economic" class="tab-content">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="payroll-hiring-date">Fecha de Antigüedad</label>
+              <input type="date" id="payroll-hiring-date" name="hiringDate" />
+              <p class="checkbox-hint">Para cálculo de trienios</p>
+            </div>
+            <div class="form-group">
+              <label for="payroll-irpf">Retención IRPF (%)</label>
+              <input type="number" id="payroll-irpf" name="irpfPercentage" step="0.01" value="2.00" />
+            </div>
+          </div>
+
+          <div class="form-section-title">Conceptos Variables (€/mes)</div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="payroll-transport">Plus Transporte</label>
+              <input type="number" id="payroll-transport" name="transport" step="0.01" value="0.00" />
+            </div>
+            <div class="form-group">
+              <label for="payroll-vestuario">Plus Vestuario</label>
+              <input type="number" id="payroll-vestuario" name="vestuario" step="0.01" value="0.00" />
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="payroll-peligrosidad">Plus Peligrosidad</label>
+              <input type="number" id="payroll-peligrosidad" name="peligrosidad" step="0.01" value="0.00" />
+            </div>
+            <div class="form-group">
+              <label for="payroll-arma">Plus Arma</label>
+              <input type="number" id="payroll-arma" name="arma" step="0.01" value="0.00" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="payroll-base-salary">Salario Base (€)</label>
+            <input type="number" id="payroll-base-salary" name="baseSalary" step="0.01" value="1323.00" />
+            <p class="checkbox-hint">Salario bases por defecto (SMI/Convenio)</p>
+          </div>
+
+          <div class="form-section-title">Prorratas de Paga Extra</div>
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="payroll-prorrateo" name="prorrateo" checked />
+              <span class="checkbox-text">Pagas extra prorrateadas</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- TAB: INCIDENCIAS -->
+        <div id="tab-incidents" class="tab-content">
+          <div id="incidents-list" class="incidents-list">
+            <!-- Incidents will be rendered here -->
+            <div class="empty-state-small">No hay incidencias registradas este mes.</div>
+          </div>
+
+          <button type="button" id="add-incident-btn" class="secondary-btn small-btn width-auto">
+            + Añadir Incidencia
+          </button>
+
+          <!-- Incident Add Form (Hidden by default) -->
+          <div id="new-incident-form" class="new-incident-form" style="display: none;">
+            <div class="form-group">
+              <label>Tipo</label>
+              <select id="incident-type">
+                <option value="it_comun">Baja Enf. Común</option>
+                <option value="it_accidente">Baja Accidente Laboral</option>
+                <option value="vacaciones">Vacaciones disfrutadas</option>
+                <option value="ausencia">Ausencia no justificada</option>
+              </select>
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Desde</label>
+                <input type="date" id="incident-start" />
+              </div>
+              <div class="form-group">
+                <label>Hasta</label>
+                <input type="date" id="incident-end" />
+              </div>
+            </div>
+            <div class="form-actions-small">
+              <button type="button" id="cancel-incident" class="secondary-btn small-btn">Cancelar</button>
+              <button type="button" id="save-incident" class="primary-btn small-btn">Guardar</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="payroll-cloud-save" class="form-group checkbox-group" style="display: none; margin-top: 20px;">
+          <label class="checkbox-label">
+            <input type="checkbox" id="save-payroll-to-cloud" name="saveToCloud" checked />
+            <span class="checkbox-text">Guardar nómina en la nube</span>
+            <span class="holiday-icon">☁️</span>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" id="cancel-payroll-btn" class="secondary-btn">Cancelar</button>
+          <button type="submit" class="primary-btn">Generar Nómina</button>
         </div>
       </form>
     </div>
@@ -387,6 +596,9 @@
 
   <!-- Auth Script -->
   <script src="./src/auth.js"></script>
+
+  <!-- Payroll Script -->
+  <script src="./src/payroll.js"></script>
 
   <!-- Main Script -->
   <script src="./src/main.js"></script>
