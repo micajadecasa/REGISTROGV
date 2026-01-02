@@ -144,6 +144,22 @@ body {
   color: var(--text-secondary);
 }
 
+.landing-top-actions {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin-bottom: var(--spacing-md);
+}
+
+.landing-logo-img {
+  transition: all var(--transition-base);
+}
+
+[data-theme="dark"] .landing-logo-img {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.2);
+}
+
 .landing-features {
   display: grid;
   grid-template-columns: 1fr;
@@ -493,6 +509,31 @@ body {
   transform: rotate(0deg) scale(1);
 }
 
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+  opacity: 0.7;
+}
+
+.tab-btn:hover {
+  color: var(--primary-color);
+  opacity: 1;
+  background-color: var(--surface-hover);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.tab-btn.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+  opacity: 1;
+}
+
 /* ============================================
    MAIN CONTENT
    ============================================ */
@@ -623,6 +664,44 @@ body {
 .add-shift-btn svg {
   width: 24px;
   height: 24px;
+}
+
+/* Monthly Observations Box */
+.observations-container {
+  background: var(--surface);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  margin-bottom: var(--spacing-xl);
+}
+
+.observations-container h3 {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.observations-container textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: var(--spacing-sm);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  resize: vertical;
+  transition: border-color var(--transition-fast);
+}
+
+.observations-container textarea:focus {
+  outline: none;
+  border-color: var(--primary);
 }
 
 /* ============================================
@@ -777,6 +856,55 @@ body {
 .empty-state-hint {
   font-size: var(--font-size-sm);
   color: var(--text-muted);
+}
+
+/* Incidents List */
+.incidents-list {
+  background-color: var(--background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  min-height: 100px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.incident-item {
+  background-color: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.incident-item:hover {
+  background-color: var(--surface-hover);
+  border-color: var(--primary-color);
+  transform: translateX(2px);
+}
+
+.incident-item strong {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.incident-item small {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.empty-state-small {
+  color: var(--text-secondary);
+  text-align: center;
+  font-style: italic;
+  padding: var(--spacing-md);
+  font-size: 0.9rem;
+  opacity: 0.7;
 }
 
 /* ============================================

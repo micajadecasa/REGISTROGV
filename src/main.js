@@ -9,7 +9,9 @@ const FALLBACK_HOLIDAYS = [
     '2024-01-01', '2024-01-06', '2024-03-28', '2024-03-29', '2024-05-01',
     '2024-08-15', '2024-10-12', '2024-11-01', '2024-12-06', '2024-12-08', '2024-12-25',
     '2025-01-01', '2025-01-06', '2025-04-17', '2025-04-18', '2025-05-01',
-    '2025-08-15', '2025-10-12', '2025-11-01', '2025-12-06', '2025-12-08', '2025-12-25'
+    '2025-08-15', '2025-10-12', '2025-11-01', '2025-12-06', '2025-12-08', '2025-12-25',
+    '2026-01-01', '2026-01-06', '2026-04-02', '2026-04-03', '2026-05-01',
+    '2026-08-15', '2026-10-12', '2026-11-01', '2026-12-06', '2026-12-08', '2026-12-25'
 ];
 
 // ============= STATE MANAGEMENT =============
@@ -18,6 +20,7 @@ let currentYear = new Date().getFullYear();
 let shifts = [];
 let editingShiftId = null;
 let holidays = []; // Will be populated from CSV
+let monthlyObservations = {}; // Stores notes per "YYYY-M"
 
 // ============= INITIALIZATION =============
 document.addEventListener('DOMContentLoaded', () => {
@@ -39,6 +42,7 @@ async function initializeApp() {
     setupEventListeners();
 
     // Initial render
+    loadObservationsFromStorage();
     updateMonthDisplay();
     renderShifts();
 }
@@ -56,7 +60,10 @@ function isHolidayDate(date) {
 
     // Check against fetched holidays
     try {
-        const dateString = date.toISOString().split('T')[0];
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        const dateString = `${y}-${m}-${d}`;
         if (holidays.includes(dateString)) return true;
     } catch (e) {
         return false;
@@ -66,9 +73,10 @@ function isHolidayDate(date) {
 
 // ============= EVENT LISTENERS =============
 function setupEventListeners() {
-    // Theme toggle
-    const themeToggle = document.getElementById('theme-toggle');
-    themeToggle.addEventListener('click', toggleTheme);
+    // Theme toggles
+    document.querySelectorAll('.theme-toggle').forEach(btn => {
+        btn.addEventListener('click', toggleTheme);
+    });
 
     // Month navigation
     document.getElementById('prev-month').addEventListener('click', () => navigateMonth(-1));
@@ -120,7 +128,174 @@ function setupEventListeners() {
             holidayCheckbox.checked = false;
         }
     });
+
+    // Payroll controls
+    document.getElementById('generate-payroll-btn').addEventListener('click', openPayrollModal);
+    document.getElementById('close-payroll-modal').addEventListener('click', closePayrollModal);
+    document.getElementById('cancel-payroll-btn').addEventListener('click', closePayrollModal);
+    document.getElementById('payroll-settings-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'payroll-settings-modal') closePayrollModal();
+    });
+    document.getElementById('payroll-settings-form').addEventListener('submit', handlePayrollSubmit);
+
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchTab(e.target.dataset.tab);
+        });
+    });
+
+
+    // Incident Management
+    document.getElementById('add-incident-btn').addEventListener('click', () => {
+        document.getElementById('new-incident-form').style.display = 'block';
+        document.getElementById('add-incident-btn').style.display = 'none';
+
+        // Default dates
+        const now = new Date();
+        const startOfMonth = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0];
+        const endOfMonth = new Date(currentYear, currentMonth + 1, 0).toISOString().split('T')[0];
+
+        document.getElementById('incident-start').value = startOfMonth;
+        document.getElementById('incident-end').value = endOfMonth;
+    });
+
+    document.getElementById('cancel-incident').addEventListener('click', () => {
+        document.getElementById('new-incident-form').style.display = 'none';
+        document.getElementById('add-incident-btn').style.display = 'block';
+    });
+
+    document.getElementById('save-incident').addEventListener('click', saveIncident);
+
+    // Monthly Observations sync
+    const obsTextarea = document.getElementById('monthly-observations');
+    obsTextarea.addEventListener('input', (e) => {
+        const key = `${currentYear}-${currentMonth}`;
+        monthlyObservations[key] = e.target.value;
+        saveObservationsToStorage();
+    });
 }
+
+function switchTab(tabId) {
+    // Buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        if (btn.dataset.tab === tabId) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+
+    // Content
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.id === `tab-${tabId}` ? content.classList.add('active') : content.classList.remove('active');
+    });
+}
+
+// ============= INCIDENT MANAGEMENT =============
+let payrollIncidents = [];
+
+function loadIncidents() {
+    const stored = localStorage.getItem('payrollIncidents');
+    if (stored) {
+        payrollIncidents = JSON.parse(stored);
+    }
+}
+
+function saveIncidentsToStorage() {
+    localStorage.setItem('payrollIncidents', JSON.stringify(payrollIncidents));
+}
+
+function getMonthIncidents(month, year) {
+    return payrollIncidents.filter(inc => {
+        const start = new Date(inc.start);
+        const end = new Date(inc.end);
+
+        // Check overlap with current month
+        const monthStart = new Date(year, month, 1);
+        const monthEnd = new Date(year, month + 1, 0);
+
+        return start <= monthEnd && end >= monthStart;
+    });
+}
+
+function renderIncidentsList() {
+    const list = document.getElementById('incidents-list');
+    const monthIncidents = getMonthIncidents(currentMonth, currentYear);
+
+    if (monthIncidents.length === 0) {
+        list.innerHTML = '<div class="empty-state-small">No hay incidencias registradas este mes.</div>';
+        return;
+    }
+
+    list.innerHTML = monthIncidents.map(inc => `
+        <div class="incident-item" style="border-bottom:1px solid #eee; padding: 5px 0; display:flex; justify-content:space-between; align-items:center;">
+             <div>
+                <strong>${getIncidentLabel(inc.type)}</strong><br>
+                <small>${formatDate(inc.start)} - ${formatDate(inc.end)}</small>
+             </div>
+             <button type="button" class="close-btn" style="color:red;" onclick="deleteIncident('${inc.id}')">
+                🗑️
+             </button>
+        </div>
+    `).join('');
+}
+
+function getIncidentLabel(type) {
+    const map = {
+        'it_comun': 'Baja Enf. Común',
+        'it_accidente': 'Baja Accidente',
+        'vacaciones': 'Vacaciones',
+        'ausencia': 'Ausencia No Just.'
+    };
+    return map[type] || type;
+}
+
+function formatDate(dateStr) {
+    const [y, m, d] = dateStr.split('-');
+    return `${d}/${m}`;
+}
+
+function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+function saveIncident() {
+    const type = document.getElementById('incident-type').value;
+    const start = document.getElementById('incident-start').value;
+    const end = document.getElementById('incident-end').value;
+
+    if (!start || !end) {
+        alert('Por favor selecciona fechas');
+        return;
+    }
+
+    if (new Date(end) < new Date(start)) {
+        alert('La fecha fin no puede ser anterior a la inicio');
+        return;
+    }
+
+    payrollIncidents.push({
+        id: generateId(),
+        type,
+        start,
+        end
+    });
+
+    saveIncidentsToStorage();
+    renderIncidentsList();
+
+    // Reset form
+    document.getElementById('new-incident-form').style.display = 'none';
+    document.getElementById('add-incident-btn').style.display = 'block';
+}
+
+// Global scope for delete onclick
+window.deleteIncident = function (id) {
+    if (confirm('¿Eliminar incidencia?')) {
+        payrollIncidents = payrollIncidents.filter(i => i.id !== id);
+        saveIncidentsToStorage();
+        renderIncidentsList();
+    }
+};
 
 function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -153,6 +328,10 @@ function updateMonthDisplay() {
 
     const monthDisplay = document.getElementById('current-month');
     monthDisplay.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+    // Update observations box for the selected month
+    const key = `${currentYear}-${currentMonth}`;
+    document.getElementById('monthly-observations').value = monthlyObservations[key] || '';
 }
 
 // ============= CALCULATIONS =============
@@ -223,21 +402,8 @@ function calculateHourTypes(date, startTime, endTime, isHolidayOverride) {
     let holidayHours = rawHolidayMs / (1000 * 60 * 60);
     let normalHours = rawNormalMs / (1000 * 60 * 60);
 
-    // Spanish security convention: 4+ night hours = full shift counts as night (max 8h)
-    if (nightHours >= 4) {
-        // Cap at total hours or 8h
-        nightHours = Math.min(totalHours, 8);
-
-        // If converted to Night, reduce Normal.
-        // If Holiday was 0, then Normal = Total - Night.
-        if (!isHolidayOverride && holidayHours === 0) {
-            normalHours = Math.max(0, totalHours - nightHours);
-        }
-        // If Holiday > 0, we assume Holiday hours take precedence over Normal, 
-        // and Night hours (supplement) are compatible with Holiday.
-        // But for the grid, we usually want to see "Holiday Hours" and "Night Hours".
-        // Normal hours are those that are neither.
-    }
+    // Hourly precision calculation already done in the loop above.
+    // Nocturnidad and Festividad are paid per hour in the security convention.
 
     return {
         total: Math.round(totalHours * 100) / 100,
@@ -399,58 +565,160 @@ function handleExportSubmission(e) {
 // ============= EXPORT GENERATION =============
 function getMonthShifts() {
     return shifts.filter(shift => {
-        const shiftDate = new Date(shift.date);
-        return shiftDate.getMonth() === currentMonth && shiftDate.getFullYear() === currentYear;
+        const [y, m, d] = shift.date.split('-').map(Number);
+        const shiftMonth = m - 1;
+        const shiftYear = y;
+        return shiftMonth === currentMonth && shiftYear === currentYear;
     }).sort((a, b) => new Date(a.date) - new Date(b.date));
+}
+
+// ============= PAYROLL MODAL FUNCTIONS =============
+function openPayrollModal() {
+    const profile = JSON.parse(localStorage.getItem('payrollProfile') || '{}');
+
+    loadIncidents(); // Load incidents from storage
+    renderIncidentsList(); // Render for current month
+
+    // Cargar datos guardados si existen
+    if (profile.workerName) document.getElementById('payroll-worker-name').value = profile.workerName;
+    if (profile.nif) document.getElementById('payroll-nif').value = profile.nif;
+    if (profile.ssNumber) document.getElementById('payroll-ss').value = profile.ssNumber;
+    if (profile.category) document.getElementById('payroll-category').value = profile.category;
+    if (profile.cotizationGroup) document.getElementById('payroll-group').value = profile.cotizationGroup;
+    if (profile.hiringDate) document.getElementById('payroll-hiring-date').value = profile.hiringDate;
+    if (profile.baseSalary) document.getElementById('payroll-base-salary').value = profile.baseSalary;
+
+    // Nuevos campos
+    if (profile.familySituation) document.getElementById('payroll-family-situation').value = profile.familySituation;
+    if (profile.children) document.getElementById('payroll-children').value = profile.children;
+    if (profile.irpfPercentage) document.getElementById('payroll-irpf').value = profile.irpfPercentage;
+
+    // Pluses (check for new profile structure)
+    if (profile.complements) {
+        document.getElementById('payroll-transport').value = profile.complements.transport || 0;
+        document.getElementById('payroll-vestuario').value = profile.complements.vestuario || 0;
+        document.getElementById('payroll-peligrosidad').value = profile.complements.peligrosidad || 0;
+        document.getElementById('payroll-arma').value = profile.complements.arma || 0;
+    }
+
+    if (profile.prorrateo !== undefined) document.getElementById('payroll-prorrateo').checked = profile.prorrateo;
+
+
+    // Comprobamos autenticación para la opción de nube
+    const cloudOption = document.getElementById('payroll-cloud-save');
+    if (window.authModule && window.authModule.currentUser() && !window.authModule.currentUser().isGuest) {
+        cloudOption.style.display = 'flex';
+    } else {
+        cloudOption.style.display = 'none';
+    }
+
+    // Reset tab to first one
+    switchTab('personal');
+
+    document.getElementById('payroll-settings-modal').classList.add('show');
+}
+
+function closePayrollModal() {
+    document.getElementById('payroll-settings-modal').classList.remove('show');
+}
+
+async function handlePayrollSubmit(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+
+    // Obtener datos del formulario
+    const payrollData = {
+        company: window.payrollModule.config.company, // Usar predeterminada por ahora
+        worker: {
+            name: formData.get('workerName'),
+            nif: formData.get('nif'),
+            ssNumber: formData.get('ssNumber'),
+            category: formData.get('category'),
+            cotizationGroup: parseInt(formData.get('cotizationGroup')),
+            hiringDate: formData.get('hiringDate'),
+            baseSalary: parseFloat(formData.get('baseSalary')) || 1323.00,
+            familySituation: formData.get('familySituation'),
+            children: parseInt(formData.get('children')) || 0,
+            irpfPercentage: parseFloat(formData.get('irpfPercentage')) || 2,
+            prorrateo: formData.get('prorrateo') === 'on'
+        },
+        complements: {
+            transport: parseFloat(formData.get('transport')) || 0,
+            food: parseFloat(formData.get('food')) || 0, // Legacy field kept for compatibility
+            vestuario: parseFloat(formData.get('vestuario')) || 0,
+            peligrosidad: parseFloat(formData.get('peligrosidad')) || 0,
+            arma: parseFloat(formData.get('arma')) || 0,
+        },
+        incidents: getMonthIncidents(currentMonth, currentYear) // Pass current month incidents
+    };
+
+    // Guardar perfil para futuro uso
+    localStorage.setItem('payrollProfile', JSON.stringify({
+        workerName: payrollData.worker.name,
+        nif: payrollData.worker.nif,
+        ssNumber: payrollData.worker.ssNumber,
+        category: payrollData.worker.category,
+        cotizationGroup: payrollData.worker.cotizationGroup,
+        hiringDate: payrollData.worker.hiringDate,
+        baseSalary: payrollData.worker.baseSalary,
+        // Nuevos campos guardados
+        familySituation: payrollData.worker.familySituation,
+        children: payrollData.worker.children,
+        irpfPercentage: payrollData.worker.irpfPercentage,
+        prorrateo: payrollData.worker.prorrateo,
+        complements: payrollData.complements
+    }));
+
+    // Configurar módulo de nómina
+    window.payrollModule.config = { ...window.payrollModule.config, ...payrollData };
+
+    // Calcular nómina
+    const monthShifts = getMonthShifts();
+    const calculatedPayroll = window.payrollModule.calculate(monthShifts, currentMonth, currentYear, payrollData.incidents); // Pass incidents
+
+    // Generar PDF y obtener blob para guardar en la nube
+    const pdfBlob = await window.payrollModule.generatePDF(calculatedPayroll);
+
+    // Guardar en la nube si está activado
+    const saveToCloud = formData.get('saveToCloud') === 'on';
+    if (saveToCloud && window.authModule) {
+        const monthNames = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+        const filename = `Nomina_${monthNames[currentMonth]}_${currentYear}.pdf`;
+        const provider = window.authModule.authProvider();
+
+        if (provider === 'google') {
+            await window.authModule.saveToGoogleDrive(pdfBlob, filename);
+        } else if (provider === 'microsoft') {
+            await window.authModule.saveToOneDrive(pdfBlob, filename);
+        }
+    }
+
+    closePayrollModal();
 }
 
 async function generatePDF(workerName, workerTip) {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    // Fonts
-    doc.setFont("helvetica");
-
-    // Header
-    doc.setFontSize(18);
-    doc.text("Registro de Horas Gasteiz de Vigilancia", 105, 20, { align: "center" });
-
-    doc.setFontSize(12);
-    doc.text(`Trabajador: ${workerName}`, 14, 35);
-    if (workerTip) doc.text(`TIP: ${workerTip}`, 14, 42);
+    const doc = new jsPDF('portrait', 'mm', 'a4');
 
     const monthNames = [
-        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+        'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
     ];
-    doc.text(`Mes: ${monthNames[currentMonth]} ${currentYear}`, 14, 55);
 
     const monthShifts = getMonthShifts();
 
-    // Table Data
-    const tableData = monthShifts.map(shift => {
-        const date = new Date(shift.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
-        return [
-            date + (shift.isHoliday ? ' (F)' : ''),
-            shift.startTime,
-            shift.endTime,
-            shift.hours.total.toFixed(2) + 'h',
-            shift.hours.night.toFixed(2) + 'h',
-            shift.hours.holiday.toFixed(2) + 'h',
-            shift.notes || '-'
-        ];
-    });
-
-    // Totals for Summary
+    // Calcular totales
     const totals = monthShifts.reduce((acc, shift) => ({
         total: acc.total + shift.hours.total,
-        night: acc.night + shift.hours.night,
-        holiday: acc.holiday + shift.hours.holiday
-    }), { total: 0, night: 0, holiday: 0 });
+        diurnas: acc.diurnas + shift.hours.normal,
+        nocturnas: acc.nocturnas + shift.hours.night,
+        festivas: acc.festivas + shift.hours.holiday
+    }), { total: 0, diurnas: 0, nocturnas: 0, festivas: 0 });
 
-    const overtime = Math.max(0, totals.total - MONTHLY_HOURS_THRESHOLD);
-
-    // Service Breakdown
+    // Calcular desglose por servicios
     const serviceTotals = {};
     monthShifts.forEach(shift => {
         const service = shift.notes || 'Sin Servicio';
@@ -458,47 +726,249 @@ async function generatePDF(workerName, workerTip) {
         serviceTotals[service] += shift.hours.total;
     });
 
-    // AutoTable
-    doc.autoTable({
-        startY: 65,
-        head: [['Fecha', 'Entrada', 'Salida', 'Total', 'Nocturnas', 'Festivas', 'Servicio']],
-        body: tableData,
-        theme: 'grid',
-        headStyles: { fillColor: [220, 38, 38] }, // Red
-        styles: { fontSize: 10, cellPadding: 3 },
-        margin: { right: 60 } // Leave space for sidebar
+    const servicesList = Object.entries(serviceTotals).map(([service, hours]) => ({
+        service,
+        hours: hours.toFixed(2)
+    }));
+
+    // Función para añadir header, footer y tabla en cada página
+    function addPageContent(pageNum, totalPages) {
+        // ========== HEADER ==========
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+
+        // Nombre (izquierda)
+        doc.text(`NOMBRE: ${workerName.toUpperCase()}`, 10, 15);
+
+        // Mes y Año juntos (derecha)
+        doc.text(`MES: ${monthNames[currentMonth]}     AÑO: ${currentYear}`, 120, 15);
+
+        // Línea separadora
+        doc.setLineWidth(0.5);
+        doc.line(10, 18, 200, 18);
+
+        // TIP (si existe)
+        if (workerTip) {
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "normal");
+            doc.text(`TIP: ${workerTip}`, 10, 23);
+        }
+
+        // ========== FOOTER ==========
+        const footerY = 285;
+
+        // Línea superior del footer
+        doc.setLineWidth(0.3);
+        doc.line(10, footerY - 3, 200, footerY - 3);
+
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+
+        // PC03 F04 (izquierda)
+        doc.text('PC03 F04', 10, footerY);
+
+        // Ed/Rev 1/0 (centro)
+        doc.text('Ed/Rev 1/0', 105, footerY, { align: 'center' });
+
+        // Paginación (derecha)
+        doc.text(`Pág. ${pageNum}/${totalPages}`, 200, footerY, { align: 'right' });
+    }
+
+    // ========== PREPARAR DATOS DE LA TABLA ==========
+    // Obtener todos los días del mes
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const dayNames = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+
+    const tableRows = [];
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(currentYear, currentMonth, day);
+        const dayOfWeek = dayNames[date.getDay()];
+
+        // Buscar si hay turnos para este día
+        const dayShifts = monthShifts.filter(s => {
+            const [y, m, d] = s.date.split('-').map(Number);
+            return d === day;
+        });
+
+        if (dayShifts.length > 0) {
+            dayShifts.forEach((shift) => {
+                tableRows.push([
+                    dayOfWeek,
+                    day.toString(),
+                    shift.notes || '',
+                    shift.startTime,
+                    shift.endTime,
+                    shift.hours.normal.toFixed(2),
+                    shift.hours.night.toFixed(2),
+                    shift.hours.holiday.toFixed(2),
+                    '', // Columna 9 (Desglose servicios parte 1)
+                    ''  // Columna 10 (Desglose servicios parte 2)
+                ]);
+            });
+        } else {
+            tableRows.push([
+                dayOfWeek,
+                day.toString(),
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                ''
+            ]);
+        }
+    }
+
+    // ========== LLENAR COLUMNA DE DESGLOSE DE SERVICIOS (DERECHA) ==========
+    let currentRightRow = 0;
+    const currentObs = monthlyObservations[`${currentYear}-${currentMonth}`] || '';
+
+    // 1. Bloques de servicios dinámicos (2 rows per active service)
+    const serviceLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    servicesList.slice(0, 10).forEach((svc, idx) => {
+        const label = serviceLetters[idx] || String.fromCharCode(65 + idx);
+
+        // Header Row (Servicio X | Total h.)
+        if (tableRows[currentRightRow]) {
+            tableRows[currentRightRow][8] = `Servicio ${label}`;
+            tableRows[currentRightRow][9] = `Total h.`;
+            currentRightRow++;
+        }
+
+        // Data Row (Name | Hours)
+        if (tableRows[currentRightRow]) {
+            tableRows[currentRightRow][8] = svc.service;
+            tableRows[currentRightRow][9] = svc.hours;
+            currentRightRow++;
+        }
     });
 
-    // Sidebar Summary
-    const finalY = doc.lastAutoTable.finalY || 65;
-    const summaryX = 150;
-    const summaryY = 65;
+    // Pequeño espacio de separación si hay servicios
+    if (servicesList.length > 0) currentRightRow++;
 
-    doc.setFillColor(245, 245, 245);
-    doc.rect(summaryX, summaryY, 50, 60, 'F');
-
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("Resumen", summaryX + 5, summaryY + 10);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text(`Total: ${totals.total.toFixed(2)}h`, summaryX + 5, summaryY + 20);
-    doc.text(`Nocturnas: ${totals.night.toFixed(2)}h`, summaryX + 5, summaryY + 30);
-    doc.text(`Festivas: ${totals.holiday.toFixed(2)}h`, summaryX + 5, summaryY + 40);
-    doc.text(`Extras: ${overtime.toFixed(2)}h`, summaryX + 5, summaryY + 50);
-
-    // Service Breakdown in Sidebar
-    let serviceY = summaryY + 70;
-    doc.setFont("helvetica", "bold");
-    doc.text("Por Servicio", summaryX + 5, serviceY);
-    serviceY += 10;
-
-    doc.setFont("helvetica", "normal");
-    for (const [service, hours] of Object.entries(serviceTotals)) {
-        doc.text(`${service}: ${hours.toFixed(2)}h`, summaryX + 5, serviceY);
-        serviceY += 7;
+    // 2. Resumen Mensual (Sigue a los servicios)
+    if (tableRows[currentRightRow]) {
+        tableRows[currentRightRow][8] = 'Total horas';
+        tableRows[currentRightRow][9] = totals.total.toFixed(2);
+        currentRightRow++;
     }
+    if (tableRows[currentRightRow]) {
+        tableRows[currentRightRow][8] = 'Horas noches';
+        tableRows[currentRightRow][9] = totals.nocturnas.toFixed(2);
+        currentRightRow++;
+    }
+    if (tableRows[currentRightRow]) {
+        tableRows[currentRightRow][8] = 'Horas festivos';
+        tableRows[currentRightRow][9] = totals.festivas.toFixed(2);
+        currentRightRow++;
+    }
+
+    // 3. Nota Obligatoria (Sigue al resumen)
+    currentRightRow++; // Espacio
+    const mandatoryStartRow = currentRightRow;
+    if (tableRows[mandatoryStartRow]) {
+        tableRows[mandatoryStartRow][8] = {
+            content: 'Obligatoriamente, el cuadrante\ndeberá ser entregado antes\ndel día 2 de cada mes',
+            rowSpan: 4,
+            colSpan: 2,
+            styles: { halign: 'center', valign: 'middle', fontSize: 7, cellPadding: 1 }
+        };
+        tableRows[mandatoryStartRow][9] = null;
+        currentRightRow += 4;
+    }
+
+    // 4. Observaciones (Ocupa todo el resto del espacio disponible)
+    currentRightRow++; // Espacio
+    const observationsStartRow = currentRightRow;
+    if (tableRows[observationsStartRow]) {
+        tableRows[observationsStartRow][8] = {
+            content: `Observaciones: ${currentObs}`,
+            rowSpan: Math.max(2, tableRows.length - observationsStartRow),
+            colSpan: 2,
+            styles: { halign: 'left', valign: 'top', fontSize: 7.5 }
+        };
+        tableRows[observationsStartRow][9] = null;
+    }
+
+    // ========== GENERAR TABLA ==========
+    const totalPages = 1; // Por ahora una sola página
+
+    addPageContent(1, totalPages);
+
+    doc.autoTable({
+        startY: workerTip ? 30 : 27,
+        head: [[
+            { content: 'Día\nsem', rowSpan: 2 },
+            { content: 'Día\nmes', rowSpan: 2 },
+            { content: 'Servicio', rowSpan: 2 },
+            { content: 'Horas servicio', colSpan: 2 },
+            { content: 'Desglose horas', colSpan: 3 },
+            { content: 'Desglose de servicios', rowSpan: 2, colSpan: 2 }
+        ], [
+            'H. entrada',
+            'H. salida',
+            'diurnas',
+            'nocturn.',
+            'festivas'
+        ]],
+        body: tableRows,
+        theme: 'grid',
+        styles: {
+            fontSize: 8,
+            cellPadding: 1,
+            lineColor: [0, 0, 0],
+            lineWidth: 0.1,
+            halign: 'center',
+            valign: 'middle'
+        },
+        headStyles: {
+            fillColor: [200, 200, 200],
+            textColor: [0, 0, 0],
+            fontStyle: 'bold',
+            fontSize: 8.5,
+            halign: 'center',
+            valign: 'middle'
+        },
+        columnStyles: {
+            0: { cellWidth: 8 },  // Día sem
+            1: { cellWidth: 8 },  // Día mes
+            2: { cellWidth: 25 }, // Servicio
+            3: { cellWidth: 15 }, // H. entrada
+            4: { cellWidth: 15 }, // H. salida
+            5: { cellWidth: 14 }, // diurnas
+            6: { cellWidth: 14 }, // nocturnas
+            7: { cellWidth: 14 }, // festivas
+            8: { cellWidth: 45, halign: 'left', fontSize: 7.5 }, // Desglose serv 1
+            9: { cellWidth: 29, halign: 'center', fontSize: 7.5 } // Desglose serv 2
+        },
+        didParseCell: function (data) {
+            const cellText = (Array.isArray(data.cell.text) ? data.cell.text.join('') : String(data.cell.text));
+
+            // Estilos para la columna de Desglose de Servicios (8 y 9)
+            if (data.column.index === 8 || data.column.index === 9) {
+                const summaryLabels = ['Total horas', 'Horas noches', 'Horas festivos'];
+                const isSummaryLabel = summaryLabels.includes(cellText);
+                const isServiceHeader = cellText.startsWith('Servicio ') || cellText === 'Total h.';
+
+                if (isSummaryLabel || isServiceHeader) {
+                    data.cell.styles.fillColor = [220, 220, 220];
+                    data.cell.styles.fontStyle = 'normal';
+                }
+
+                // Negrita para los valores del resumen mensual (columna 9 cuando col 8 es una etiqueta de resumen)
+                const rowData = data.row.raw;
+                const labelInCol8 = rowData[8]?.content || rowData[8];
+                if (data.column.index === 9 && summaryLabels.includes(String(labelInCol8))) {
+                    data.cell.styles.fontStyle = 'bold';
+                }
+            }
+        },
+        margin: { top: 25, bottom: 20, left: 10, right: 10 },
+        tableWidth: 'auto'
+    });
 
     // Generate filename
     const filename = `Registro_Horas_${monthNames[currentMonth]}_${currentYear}.pdf`;
@@ -617,6 +1087,19 @@ window.deleteShift = (id) => {
     }
 };
 
+function saveObservationsToStorage() {
+    localStorage.setItem('monthlyObservations', JSON.stringify(monthlyObservations));
+}
+
+function loadObservationsFromStorage() {
+    try {
+        const saved = localStorage.getItem('monthlyObservations');
+        if (saved) monthlyObservations = JSON.parse(saved);
+    } catch (e) {
+        monthlyObservations = {};
+    }
+}
+
 // ============= HISTORY MODAL =============
 function openHistoryModal() {
     renderHistoryList();
@@ -678,9 +1161,9 @@ function getMonthsWithShifts() {
     const monthMap = new Map();
 
     shifts.forEach(shift => {
-        const date = new Date(shift.date);
-        const month = date.getMonth();
-        const year = date.getFullYear();
+        const [y, m, d] = shift.date.split('-').map(Number);
+        const month = m - 1;
+        const year = y;
         const key = `${year}-${month}`;
 
         if (!monthMap.has(key)) {
