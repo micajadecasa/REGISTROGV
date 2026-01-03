@@ -963,7 +963,7 @@ async function generatePDF(workerName, workerTip) {
     });
 
     // Generate filename
-    const filename = `Registro_Horas_${monthNames[currentMonth]}_${currentYear}.pdf`;
+    const filename = `${monthNames[currentMonth]}_${currentYear}_Registro_Horas.pdf`;
 
     // Save locally
     doc.save(filename);
@@ -980,9 +980,9 @@ async function generatePDF(workerName, workerTip) {
 
             // Save to appropriate cloud storage
             if (provider === 'google') {
-                window.authModule.saveToGoogleDrive(pdfBlob, filename);
+                window.authModule.saveToGoogleDrive(pdfBlob, filename, currentYear);
             } else if (provider === 'microsoft') {
-                window.authModule.saveToOneDrive(pdfBlob, filename);
+                window.authModule.saveToOneDrive(pdfBlob, filename, currentYear);
             }
         }
     }

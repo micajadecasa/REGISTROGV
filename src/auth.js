@@ -207,26 +207,68 @@ async function getMicrosoftProfilePhoto(token) {
 }
 
 // ============= CLOUD STORAGE =============
-async function saveToGoogleDrive(pdfBlob, filename) {
+
+async function getOrCreateGoogleFolder(folderName, parentId = null) {
+    let query = `name = '${folderName}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`;
+    if (parentId) {
+        query += ` and '${parentId}' in parents`;
+    }
+
+    const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id)`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+    const result = await response.json();
+
+    if (result.files && result.files.length > 0) {
+        return result.files[0].id;
+    }
+
+    // Create folder
+    const metadata = {
+        name: folderName,
+        mimeType: 'application/vnd.google-apps.folder'
+    };
+    if (parentId) {
+        metadata.parents = [parentId];
+    }
+
+    const createResponse = await fetch('https://www.googleapis.com/drive/v3/files', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(metadata)
+    });
+    const createResult = await createResponse.json();
+    return createResult.id;
+}
+
+async function saveToGoogleDrive(pdfBlob, filename, year) {
     console.log('🔵 Intentando guardar en Google Drive...');
-    console.log('Token disponible:', accessToken ? 'SÍ' : 'NO');
 
     if (!accessToken) {
-        console.error('❌ No hay token de acceso para Google Drive');
         showNotification('❌ No hay token de acceso. Vuelve a iniciar sesión.', 'error');
         return false;
     }
 
-    const metadata = {
-        name: filename,
-        mimeType: 'application/pdf'
-    };
-
-    const form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-    form.append('file', pdfBlob);
-
     try {
+        // 1. Obtener o crear carpeta principal "Parte Mensuales"
+        const mainFolderId = await getOrCreateGoogleFolder('Parte Mensuales');
+
+        // 2. Obtener o crear subcarpeta del año
+        const yearFolderId = await getOrCreateGoogleFolder(year.toString(), mainFolderId);
+
+        const metadata = {
+            name: filename,
+            mimeType: 'application/pdf',
+            parents: [yearFolderId]
+        };
+
+        const form = new FormData();
+        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+        form.append('file', pdfBlob);
+
         console.log('📤 Subiendo archivo a Google Drive...');
         const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
             method: 'POST',
@@ -236,16 +278,12 @@ async function saveToGoogleDrive(pdfBlob, filename) {
             body: form
         });
 
-        console.log('📥 Respuesta de Google Drive:', response.status);
-
         if (response.ok) {
             const result = await response.json();
-            console.log('✅ PDF guardado en Google Drive:', result);
-            showNotification(`✅ PDF guardado en Google Drive (ID: ${result.id})`, 'success');
+            showNotification(`✅ PDF guardado en Google Drive (${year}/Parte Mensuales)`, 'success');
             return true;
         } else {
             const errorText = await response.text();
-            console.error('❌ Error de Google Drive:', errorText);
             throw new Error(`Error ${response.status}: ${errorText}`);
         }
     } catch (error) {
@@ -255,18 +293,21 @@ async function saveToGoogleDrive(pdfBlob, filename) {
     }
 }
 
-async function saveToOneDrive(pdfBlob, filename) {
+async function saveToOneDrive(pdfBlob, filename, year) {
     console.log('🔵 Intentando guardar en OneDrive...');
 
     if (!accessToken) {
-        console.error('❌ No hay token de acceso para OneDrive');
         showNotification('❌ No hay token de acceso. Vuelve a iniciar sesión.', 'error');
         return false;
     }
 
     try {
         console.log('📤 Subiendo archivo a OneDrive...');
-        const response = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${filename}:/content`, {
+        // Microsoft Graph permite crear carpetas automáticamente usando la ruta en la URL
+        const encodedFilename = encodeURIComponent(filename);
+        const encodedPath = encodeURIComponent(`Parte Mensuales/${year}`);
+
+        const response = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/Parte Mensuales/${year}/${encodedFilename}:/content`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -275,16 +316,11 @@ async function saveToOneDrive(pdfBlob, filename) {
             body: pdfBlob
         });
 
-        console.log('📥 Respuesta de OneDrive:', response.status);
-
         if (response.ok) {
-            const result = await response.json();
-            console.log('✅ PDF guardado en OneDrive:', result);
-            showNotification(`✅ PDF guardado en OneDrive`, 'success');
+            showNotification(`✅ PDF guardado en OneDrive (${year}/Parte Mensuales)`, 'success');
             return true;
         } else {
             const errorText = await response.text();
-            console.error('❌ Error de OneDrive:', errorText);
             throw new Error(`Error ${response.status}: ${errorText}`);
         }
     } catch (error) {
