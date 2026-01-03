@@ -1,256 +1,55 @@
-# Registro de Horas Gasteiz - Aplicación con Autenticación OAuth
+# Registro de Horas Gasteiz 🛡️
 
-## 🚀 Características
-
-✅ **Portada de Acceso**
-- Acceso como visitante (sin login)
-- Acceso con cuenta (Google o Microsoft)
-
-✅ **Autenticación OAuth 2.0**
-- Login con Google (Google Identity Services)
-- Login con Microsoft (MSAL)
-- Sesión persistente (24 horas)
-
-✅ **Almacenamiento en la Nube**
-- Guardado automático en Google Drive
-- Guardado automático en OneDrive
-- Solo disponible para usuarios autenticados
-
-✅ **Funcionalidad Completa**
-- Registro de turnos (normales, nocturnas, festivas)
-- Exportación a PDF profesional
-- Historial de meses anteriores
-- Modo oscuro/claro
-- 100% Responsive (Mobile-First)
+**Registro de Horas Gasteiz** es una aplicación web diseñada específicamente para personal de vigilancia y seguridad. Permite llevar un control exhaustivo de los turnos de trabajo, calcular automáticamente las horas (normales, nocturnas y festivas) y generar informes profesionales en PDF listos para entregar.
 
 ---
 
-## 📋 Configuración Requerida
+## 📖 Cómo funciona la aplicación
 
-### 1. Obtener Credenciales de Google
+### 1. Acceso a la aplicación
+Al entrar, encontrarás dos formas de acceder:
+*   **Acceso Visitante**: Ideal para probar la aplicación rápidamente. Tus datos se guardan solo en tu navegador. No permite el guardado automático de PDFs en la nube.
+*   **Acceso con Cuenta (Google/Microsoft)**: Recomendado para uso habitual. Al iniciar sesión, la aplicación puede conectar con tu **Google Drive** o **OneDrive** para guardar automáticamente tus informes mensuales cada vez que los generas.
 
-1. Ve a [Google Cloud Console](https://console.cloud.google.com/)
-2. Crea un nuevo proyecto o selecciona uno existente
-3. Habilita las siguientes APIs:
-   - Google Drive API
-   - Google Identity Services
-4. Ve a "Credenciales" → "Crear credenciales" → "ID de cliente de OAuth 2.0"
-5. Configura la pantalla de consentimiento OAuth
-6. Añade los orígenes autorizados:
-   ```
-   http://localhost:5500
-   http://127.0.0.1:5500
-   https://tu-dominio.com
-   ```
-7. Copia el **Client ID** (formato: `xxxxx.apps.googleusercontent.com`)
+### 2. Gestión de Turnos
+La pantalla principal es tu cuadrante mensual:
+*   **Añadir Turno**: Pulsa el botón rojo para registrar un nuevo día. Solo tienes que indicar la fecha, la hora de entrada y la de salida.
+*   **Detección de Festivos**: La app detecta automáticamente los festivos nacionales y fines de semana, marcándolos en rojo en tu tabla.
+*   **Servicios Diferenciados**: En cada turno puedes anotar el servicio realizado (ej: Renfe, Hospital, Evento X). La app agrupará las horas por servicio automáticamente.
+*   **Cálculos Automáticos**: Olvídate de sumar minutos. La app calcula por ti:
+    *   **Horas Diurnas**.
+    *   **Horas Nocturnas** (franja de 22:00 a 06:00).
+    *   **Horas Festivas**.
+    *   **Horas Extras**.
 
-### 2. Obtener Credenciales de Microsoft
+### 3. Observaciones del Mes
+Al final de la tabla de turnos, dispones de un cuadro de texto para anotar incidencias, cambios de última hora o cualquier mensaje que necesites que aparezca en tu informe final. Estas notas se guardan mes a mes.
 
-1. Ve a [Azure Portal](https://portal.azure.com/)
-2. Navega a "Azure Active Directory" → "App registrations"
-3. Crea un nuevo registro de aplicación
-4. Configura:
-   - Nombre: "Registro Horas Gasteiz"
-   - Tipo de cuenta: "Cuentas en cualquier directorio organizativo y cuentas personales de Microsoft"
-   - URI de redirección: `http://localhost:5500` (Web)
-5. En "Autenticación", habilita:
-   - Tokens de acceso
-   - Tokens de ID
-6. En "Permisos de API", añade:
-   - Microsoft Graph → `User.Read`
-   - Microsoft Graph → `Files.ReadWrite`
-7. Copia el **Application (client) ID**
+### 4. Generación de Informes (PDF)
+Cuando termine el mes, pulsa en **"Descargar Parte del Mes"**:
+1.  Introduce tu nombre y número de TIP.
+2.  Si has iniciado sesión, marca la casilla de **"Guardar en la nube"**.
+3.  Se generará un documento PDF profesional con:
+    *   Tabla detallada de todos los días del mes.
+    *   Desglose por servicios (hasta 10 servicios diferentes).
+    *   Cuadro resumen de totales (Horas totales, noches y festivos).
+    *   Espacio para observaciones y notas obligatorias de entrega.
 
-### 3. Configurar la Aplicación
-
-Edita el archivo `src/auth.js` y reemplaza las credenciales:
-
-```javascript
-// Líneas 4-5
-const GOOGLE_CLIENT_ID = 'TU_GOOGLE_CLIENT_ID_AQUI.apps.googleusercontent.com';
-const MICROSOFT_CLIENT_ID = 'TU_MICROSOFT_CLIENT_ID_AQUI';
-```
+### 5. Historial
+Puedes navegar entre meses usando las flechas o pulsar en **"Historial"** para ver rápidamente todos los meses que tienes registrados. Los datos siempre se mantienen guardados de forma segura en tu dispositivo (o en tu nube si iniciaste sesión).
 
 ---
 
-## 🛠️ Instalación y Uso
-
-### Opción 1: Servidor Local Simple
-
-```bash
-# Con Python 3
-python -m http.server 5500
-
-# Con Node.js (npx)
-npx serve -p 5500
-
-# Con PHP
-php -S localhost:5500
-```
-
-### Opción 2: Live Server (VS Code)
-
-1. Instala la extensión "Live Server"
-2. Click derecho en `index.html` → "Open with Live Server"
-
-### Opción 3: Despliegue en Producción
-
-1. Sube los archivos a tu hosting
-2. Actualiza los **Orígenes autorizados** en Google Cloud Console
-3. Actualiza las **URIs de redirección** en Azure Portal
+## ✨ Características Premium
+*   **Modo Noche**: Cambia entre el tema claro y oscuro con el icono del sol/luna en la esquina superior derecha.
+*   **App Instalable (PWA)**: Puedes instalar esta web como si fuera una aplicación en tu móvil. Solo tienes que pulsar en "Añadir a pantalla de inicio" en el menú de tu navegador.
+*   **Privacidad Total**: La aplicación no almacena tus datos en servidores externos propios. Todo se gestiona en tu dispositivo o bajo tu control en tu propia cuenta de Google/Microsoft.
 
 ---
 
-## 📁 Estructura de Archivos
-
-```
-primordial-protostar/
-├── index.html              # Página principal con landing page
-├── manifest.json           # PWA manifest
-├── sw.js                   # Service Worker
-├── src/
-│   ├── auth.js            # ⭐ Módulo de autenticación OAuth
-│   ├── main.js            # Lógica principal de la app
-│   └── style.css          # Estilos responsive
-└── public/
-    ├── clock.svg          # Logo
-    └── icon.png           # Icono PWA
-```
+## ⚖️ Aviso Legal
+Esta es una **aplicación no oficial** creada como herramienta de apoyo para el trabajador. Verifica siempre que los cálculos coinciden con tu cuadrante oficial antes de cualquier entrega.
 
 ---
 
-## 🔐 Flujo de Autenticación
-
-### Visitante (Sin Login)
-1. Click en "Acceso Visitante"
-2. Acceso completo a la app
-3. ❌ No puede guardar PDFs en la nube
-4. ✅ Puede descargar PDFs localmente
-
-### Usuario con Cuenta
-1. Click en "Acceso con Cuenta"
-2. Selecciona Google o Microsoft
-3. Autoriza permisos (Drive o OneDrive)
-4. ✅ Acceso completo + guardado en la nube
-5. ✅ Sesión persistente (24h)
-
----
-
-## ☁️ Guardado en la Nube
-
-### Google Drive
-- Los PDFs se guardan en la raíz de "Mi unidad"
-- Permisos: Solo archivos creados por la app
-- API: Google Drive API v3
-
-### OneDrive
-- Los PDFs se guardan en la raíz de OneDrive
-- Permisos: Lectura/escritura de archivos
-- API: Microsoft Graph API
-
-### Configuración en el PDF
-- Checkbox "Guardar automáticamente en la nube"
-- Aparece solo si el usuario está autenticado
-- Indica el proveedor (Drive o OneDrive)
-
----
-
-## 🎨 Personalización
-
-### Colores del Tema
-
-Edita `src/style.css` (líneas 6-19):
-
-```css
-:root {
-  --color-red: #DC2626;      /* Color principal */
-  --color-green: #16A34A;    /* Color de éxito */
-  --color-black: #0F172A;    /* Texto principal */
-  --color-white: #FFFFFF;    /* Fondo claro */
-}
-```
-
-### Textos de la Landing Page
-
-Edita `index.html` (líneas 22-75):
-
-```html
-<h1 class="landing-title">Tu Título Aquí</h1>
-<p class="landing-subtitle">Tu subtítulo aquí</p>
-```
-
----
-
-## 🐛 Solución de Problemas
-
-### Error: "La biblioteca de Google no se ha cargado"
-- Verifica que tienes conexión a internet
-- Comprueba que el script de Google está en `index.html`
-- Revisa la consola del navegador para errores de CORS
-
-### Error: "No hay token de acceso"
-- El usuario debe autorizar los permisos de Drive/OneDrive
-- Cierra sesión y vuelve a iniciar sesión
-- Verifica que los scopes están correctos en `auth.js`
-
-### Los PDFs no se guardan en la nube
-- Verifica que el checkbox "Guardar en la nube" está marcado
-- Comprueba que el usuario no es visitante
-- Revisa la consola para errores de API
-
-### CORS en desarrollo local
-- Usa un servidor local (no abras el archivo directamente)
-- Añade `http://localhost:PUERTO` a los orígenes autorizados
-- Usa HTTPS en producción
-
----
-
-## 📱 PWA (Progressive Web App)
-
-La aplicación es instalable como PWA:
-
-1. Abre la app en Chrome/Edge móvil
-2. Menú → "Añadir a pantalla de inicio"
-3. La app se abre en modo standalone (sin navegador)
-
----
-
-## 🔒 Seguridad
-
-✅ **OAuth 2.0**: Autenticación segura sin almacenar contraseñas
-✅ **Tokens en memoria**: Los access tokens no se guardan en localStorage
-✅ **HTTPS recomendado**: Para producción, usa siempre HTTPS
-✅ **Permisos mínimos**: Solo acceso a archivos creados por la app
-
----
-
-## 📄 Licencia
-
-Este proyecto es de código abierto. Puedes usarlo, modificarlo y distribuirlo libremente.
-
----
-
-## 🤝 Soporte
-
-Si tienes problemas:
-
-1. Revisa la consola del navegador (F12)
-2. Verifica que las credenciales OAuth están correctas
-3. Comprueba que las APIs están habilitadas en Google Cloud / Azure
-4. Asegúrate de usar un servidor local (no `file://`)
-
----
-
-## 🎯 Próximas Mejoras
-
-- [ ] Sincronización automática con la nube
-- [ ] Exportación a Excel
-- [ ] Notificaciones push
-- [ ] Modo offline completo
-- [ ] Compartir PDFs por email
-
----
-
-**¡Listo para usar!** 🚀
-
-Recuerda configurar tus credenciales OAuth antes de empezar.
+**¡Empieza a gestionar tus horas hoy mismo!** 🚀
