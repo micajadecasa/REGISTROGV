@@ -88,9 +88,7 @@ function setupEventListeners() {
     // Shift Modal controls
     document.getElementById('close-modal').addEventListener('click', closeModal);
     document.getElementById('cancel-btn').addEventListener('click', closeModal);
-    document.getElementById('shift-modal').addEventListener('click', (e) => {
-        if (e.target.id === 'shift-modal') closeModal();
-    });
+
 
     // Form submission
     document.getElementById('shift-form').addEventListener('submit', handleFormSubmit);
@@ -101,9 +99,7 @@ function setupEventListeners() {
     // PDF/Excel Modal controls
     document.getElementById('close-pdf-modal').addEventListener('click', closePdfModal);
     document.getElementById('cancel-pdf-btn').addEventListener('click', closePdfModal);
-    document.getElementById('pdf-settings-modal').addEventListener('click', (e) => {
-        if (e.target.id === 'pdf-settings-modal') closePdfModal();
-    });
+
 
     // Export Form submission
     document.getElementById('pdf-settings-form').addEventListener('submit', handleExportSubmission);
@@ -111,9 +107,7 @@ function setupEventListeners() {
     // History button
     document.getElementById('history-btn').addEventListener('click', openHistoryModal);
     document.getElementById('close-history-modal').addEventListener('click', closeHistoryModal);
-    document.getElementById('history-modal').addEventListener('click', (e) => {
-        if (e.target.id === 'history-modal') closeHistoryModal();
-    });
+
 
     // Holiday checkbox auto-detect
     const dateInput = document.getElementById('shift-date');
@@ -133,9 +127,7 @@ function setupEventListeners() {
     document.getElementById('generate-payroll-btn').addEventListener('click', openPayrollModal);
     document.getElementById('close-payroll-modal').addEventListener('click', closePayrollModal);
     document.getElementById('cancel-payroll-btn').addEventListener('click', closePayrollModal);
-    document.getElementById('payroll-settings-modal').addEventListener('click', (e) => {
-        if (e.target.id === 'payroll-settings-modal') closePayrollModal();
-    });
+
     document.getElementById('payroll-settings-form').addEventListener('submit', handlePayrollSubmit);
 
     // Tab switching

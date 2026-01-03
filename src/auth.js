@@ -2,7 +2,7 @@
 
 // OAuth Configuration
 const GOOGLE_CLIENT_ID = '1076553063267-h3pfdmhtpl4rp16ftdsbbiaq76odsqka.apps.googleusercontent.com';
-const MICROSOFT_CLIENT_ID = 'TU_MICROSOFT_CLIENT_ID';
+const MICROSOFT_CLIENT_ID = 'c44b4083-3bb0-49c1-b47d-974e53cbdf3c';
 
 // Cloud Storage State
 let currentUser = null;
@@ -143,7 +143,7 @@ async function loginWithMicrosoft() {
     const msalConfig = {
         auth: {
             clientId: MICROSOFT_CLIENT_ID,
-            authority: 'https://login.microsoftonline.com/common',
+            authority: 'https://login.microsoftonline.com/consumers',
             redirectUri: window.location.origin
         },
         cache: {
