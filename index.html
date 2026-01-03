@@ -5,11 +5,11 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="./public/clock.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-  <meta name="description" content="Parte de Horas de Vigilancia - Aplicación móvil optimizada" />
+  <meta name="description" content="Registro de Horas de Vigilancia - Aplicación móvil optimizada" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Parte Mensual de Horas</title>
+  <title>Registro de Horas Gasteiz</title>
   <link rel="stylesheet" href="./src/style.css" />
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#DC2626">
@@ -127,7 +127,7 @@
           </svg>
           Continuar con Google
         </button>
-        <button id="microsoft-login-btn" class="login-provider-btn microsoft-btn">
+        <button id="microsoft-login-btn" class="login-provider-btn microsoft-btn" style="display: none;">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zm12.6 0H12.6V0H24v11.4z"
               fill="#00A4EF" />
@@ -343,8 +343,8 @@
         </div>
         <div id="validation-messages" class="validation-messages"></div>
         <div class="form-actions">
-          <button type="button" id="cancel-btn" class="secondary-btn">Cancelar</button>
           <button type="submit" class="primary-btn">Guardar Turno</button>
+          <button type="button" id="cancel-btn" class="secondary-btn">Cancelar</button>
         </div>
       </form>
     </div>
@@ -380,8 +380,8 @@
           <p class="checkbox-hint" id="cloud-provider-hint">Se guardará en tu Google Drive</p>
         </div>
         <div class="form-actions">
-          <button type="button" id="cancel-pdf-btn" class="secondary-btn">Cancelar</button>
           <button type="submit" class="primary-btn">Generar Parte</button>
+          <button type="button" id="cancel-pdf-btn" class="secondary-btn">Cancelar</button>
         </div>
       </form>
     </div>
@@ -541,8 +541,8 @@
               </div>
             </div>
             <div class="form-actions-small">
-              <button type="button" id="cancel-incident" class="secondary-btn small-btn">Cancelar</button>
               <button type="button" id="save-incident" class="primary-btn small-btn">Guardar</button>
+              <button type="button" id="cancel-incident" class="secondary-btn small-btn">Cancelar</button>
             </div>
           </div>
         </div>
@@ -556,8 +556,8 @@
         </div>
 
         <div class="form-actions">
-          <button type="button" id="cancel-payroll-btn" class="secondary-btn">Cancelar</button>
           <button type="submit" class="primary-btn">Generar Nómina</button>
+          <button type="button" id="cancel-payroll-btn" class="secondary-btn">Cancelar</button>
         </div>
       </form>
     </div>
@@ -613,6 +613,5 @@
     }
   </script>
 </body>
-
 
 </html>
